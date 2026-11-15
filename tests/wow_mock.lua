@@ -17,6 +17,7 @@ Mock = {
 	frames = {},
 	metadata = { Version = '@project-version@' },
 	addonTitles = {},
+	loaded = {},
 	secure = {},
 	taint = {},
 	tainting = nil,
@@ -51,6 +52,9 @@ function GetMinimapShape()
 end
 
 C_AddOns = {
+	IsAddOnLoaded = function(name)
+		return Mock.loaded[name] == true
+	end,
 	GetAddOnMetadata = function(name, field)
 		if name == 'Buttonstone' then
 			return Mock.metadata[field]
@@ -289,6 +293,16 @@ function Region:GetCenter()
 	local x = rx + (OFFSET_X[p[3]] or 0) * rw / 2 + p[4] - (OFFSET_X[p[1]] or 0) * self._w / 2
 	local y = ry + (OFFSET_Y[p[3]] or 0) * rh / 2 + p[5] - (OFFSET_Y[p[1]] or 0) * self._h / 2
 	return x, y
+end
+
+function Region:GetLeft()
+	local x = self:GetCenter()
+	return x and x - self._w / 2
+end
+
+function Region:GetTop()
+	local _, y = self:GetCenter()
+	return y and y + self._h / 2
 end
 
 function Region:GetEffectiveScale()

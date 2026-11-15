@@ -270,6 +270,8 @@ function Bundle:Layout()
 	if self.rule then
 		self.rule:SetShown(p.header)
 	end
+	local rival = ns.Collector.rival
+	self.empty:SetText(rival and L.EMPTY_RIVAL:format(rival) or L.EMPTY)
 	self.empty:SetShown(count == 0)
 	self.empty:ClearAllPoints()
 	self.empty:SetPoint('CENTER', frame, 'TOPLEFT', width / 2, -(top + gridHeight / 2))

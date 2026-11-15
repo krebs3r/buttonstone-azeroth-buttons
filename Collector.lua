@@ -28,6 +28,12 @@ local BLOCKED = { 'SetPoint', 'ClearAllPoints', 'SetAllPoints', 'SetParent', 'Se
 -- Frames of Buttonstone's own; never gathered.
 local OWN = { ButtonstoneLauncher = true, ButtonstonePanel = true }
 
+-- Other addons that gather minimap buttons. Two collectors cannot share the
+-- buttons: MinimapButtonButton places its buttons with UIParent.SetPoint, past
+-- any shadowing, and pulled them out of Buttonstone's slots on TBC Anniversary.
+-- With one of them loaded, Buttonstone leaves every button to it and says so.
+local RIVALS = { 'MinimapButtonButton', 'MinimapButtonFrame', 'MBB' }
+
 -- Map pins and markers drawn on the minimap by other addons, not buttons.
 local NOT_BUTTONS = { 'pin', 'node', 'questie', 'handynotes', 'gathermate', 'tomtom', 'waypoint', 'blip', 'poi' }
 
@@ -326,11 +332,30 @@ function Collector:Consider(button, source, libName)
 	if source == 'own' and not looksLikeButton(button, name) then
 		return
 	end
+	-- A LibDBIcon button another addon has already moved off the minimap is that addon's.
+	local parent = try(button, 'GetParent')
+	if parent ~= Minimap and parent ~= MinimapBackdrop then
+		return
+	end
 	self:Gather(button, name, source, libName)
 end
 
+function Collector:Rival()
+	local loaded = (C_AddOns and C_AddOns.IsAddOnLoaded) or IsAddOnLoaded
+	if type(loaded) ~= 'function' then
+		return nil
+	end
+	for _, name in ipairs(RIVALS) do
+		local ok, isLoaded = pcall(loaded, name)
+		if ok and isLoaded then
+			return name
+		end
+	end
+	return nil
+end
+
 function Collector:Scan()
-	if not ns.db then
+	if not ns.db or self.rival then
 		return
 	end
 	local lib = libDBIcon()
@@ -360,6 +385,12 @@ function Collector:Scan()
 end
 
 function Collector:Init()
+	self.rival = self:Rival()
+	if self.rival then
+		ns.Chat(ns.L.RIVAL:format(self.rival))
+		ns.Bundle:Layout()
+		return
+	end
 	-- Addons make their buttons at login or a little later; look again then.
 	self:Scan()
 	C.After(1, function() Collector:Scan() end)

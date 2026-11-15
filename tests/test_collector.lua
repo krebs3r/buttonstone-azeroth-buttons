@@ -104,6 +104,11 @@ umbra:SetHighlightTexture('Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight')
 
 local backdropButton = hourstoneLike('OldStyleMinimapButton', 'Backdropper', MinimapBackdrop)
 
+-- A LibDBIcon button another addon has already put somewhere else.
+local barred = lib:Create('Barred')
+local someBar = CreateFrame('Frame', 'SomeButtonBar', UIParent)
+barred:SetParent(someBar)
+
 -- Like WIM: on its own events it sets strata and level along with its place.
 local wim = hourstoneLike('WIM3MinimapButton', 'WIM')
 function wim:UpdatePosition()
@@ -143,11 +148,18 @@ for _, name in ipairs({ 'LibDBIcon10_Bagsmith', 'LibDBIcon10_Coinkeeper', 'LibDB
 	check(gathered[name], 'gathered ' .. name)
 end
 for _, name in ipairs({ 'HandyNotesPin12', 'GatherMateNodeHerb', 'MapCoordsText', 'PrettyMinimapGlow',
-	'SecureThingMinimapButton', 'ExcludedMinimapButton', 'MiniMapTracking', 'GameTimeFrame', 'ButtonstoneLauncher' }) do
+	'SecureThingMinimapButton', 'ExcludedMinimapButton', 'MiniMapTracking', 'GameTimeFrame', 'ButtonstoneLauncher',
+	'LibDBIcon10_Barred' }) do
 	check(not gathered[name], 'left alone: ' .. name)
 end
 equal(#ns.Collector.records, 8, 'gathered count')
 check(decoration:GetParent() == Minimap, 'a decoration without a click stays where it was')
+equal(barred:GetParent(), someBar, 'a LibDBIcon button another addon moved stays with it')
+equal(ns.Collector.rival, nil, 'no other collector loaded')
+
+-- Seen with WIM on TBC Anniversary: addons read their gathered button's place on events.
+check(panel:GetNumPoints() > 0, 'the panel is anchored before it is ever opened')
+check(type(wim:GetLeft()) == 'number', 'a gathered button has a place on the screen while the panel is closed')
 
 equal(gathered.LibDBIcon10_Bagsmith.label, 'Bagsmith', 'LibDBIcon name')
 equal(gathered.LibDBIcon10_Coinkeeper.label, 'Coinkeeper', 'LibDataBroker label without colour codes')
