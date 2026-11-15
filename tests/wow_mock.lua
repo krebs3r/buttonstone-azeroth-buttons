@@ -17,6 +17,7 @@ Mock = {
 	frames = {},
 	metadata = { Version = '@project-version@' },
 	addonTitles = {},
+	loaded = {},
 	secure = {},
 	taint = {},
 	tainting = nil,
@@ -51,6 +52,9 @@ function GetMinimapShape()
 end
 
 C_AddOns = {
+	IsAddOnLoaded = function(name)
+		return Mock.loaded[name] == true
+	end,
 	GetAddOnMetadata = function(name, field)
 		if name == 'Buttonstone' then
 			return Mock.metadata[field]
@@ -291,6 +295,16 @@ function Region:GetCenter()
 	return x, y
 end
 
+function Region:GetLeft()
+	local x = self:GetCenter()
+	return x and x - self._w / 2
+end
+
+function Region:GetTop()
+	local _, y = self:GetCenter()
+	return y and y + self._h / 2
+end
+
 function Region:GetEffectiveScale()
 	return 1
 end
@@ -320,6 +334,22 @@ end
 
 function Texture:SetAtlas(atlas)
 	self._atlas = atlas
+end
+
+function Texture:SetHorizTile(value)
+	self._horizTile = value
+end
+
+function Texture:SetVertTile(value)
+	self._vertTile = value
+end
+
+function Texture:SetTexelSnappingBias(value)
+	self._snapBias = value
+end
+
+function Texture:SetSnapToPixelGrid(value)
+	self._snap = value
 end
 
 function Texture:GetAtlas()
@@ -560,6 +590,15 @@ function Frame:GetHighlightTexture()
 	return self._highlight
 end
 
+-- UIPanelButtonTemplate's label.
+function Frame:SetText(text)
+	self._text = text
+end
+
+function Frame:GetText()
+	return self._text
+end
+
 function Frame:IsProtected()
 	return self._protected == true, self._protected == true
 end
@@ -574,9 +613,10 @@ function Frame:CreateAnimationGroup()
 	}
 end
 
-function CreateFrame(kind, name, parent)
+function CreateFrame(kind, name, parent, template)
 	local frame = newObject(kind, name, nil, FrameClass)
 	frame._isFrame = true
+	frame._template = template
 	if parent then
 		frame:SetParent(parent)
 	end
@@ -643,6 +683,66 @@ function GameTooltip:SetText(text)
 end
 function GameTooltip:AddLine(text)
 	table.insert(self._lines, text)
+end
+
+NORMAL_FONT_COLOR = {
+	GetRGB = function()
+		return 1, 0.82, 0
+	end,
+}
+
+--[[ The client's art: atlases, nine-slice layouts and NineSliceUtil, as the
+Mainline UI has them. tests/run.py installs it for every client but the run
+that checks Forever's fallback, which gets none of it.
+--]]
+function Mock.InstallArt()
+	Mock.atlases = {
+		['UI-Frame-Metal-CornerTopLeft'] = { width = 75, height = 74 },
+		['UI-Frame-Metal-CornerTopRight'] = { width = 75, height = 74 },
+		['UI-Frame-Metal-CornerBottomLeft'] = { width = 32, height = 32 },
+		['UI-Frame-Metal-CornerBottomRight'] = { width = 32, height = 32 },
+		['_UI-Frame-Metal-EdgeTop'] = { width = 32, height = 74, tilesHorizontally = true },
+		['_UI-Frame-Metal-EdgeBottom'] = { width = 32, height = 32, tilesHorizontally = true },
+		['!UI-Frame-Metal-EdgeLeft'] = { width = 10, height = 32, tilesVertically = true },
+		['!UI-Frame-Metal-EdgeRight'] = { width = 10, height = 32, tilesVertically = true },
+		['_UI-Frame-TopTileStreaks'] = { width = 256, height = 43, tilesHorizontally = true },
+		['UI-HUD-ActionBar-IconFrame'] = { width = 46, height = 45 },
+		['UI-HUD-ActionBar-IconFrame-Down'] = { width = 46, height = 45 },
+		['UI-HUD-ActionBar-IconFrame-Mouseover'] = { width = 46, height = 45 },
+	}
+	C_Texture = {
+		GetAtlasInfo = function(name)
+			return Mock.atlases[name]
+		end,
+	}
+	NineSliceLayouts = {
+		ButtonFrameTemplateNoPortrait = {
+			TopLeftCorner = { atlas = 'UI-Frame-Metal-CornerTopLeft', x = -13, y = 16 },
+			TopRightCorner = { atlas = 'UI-Frame-Metal-CornerTopRight', x = 4, y = 16 },
+			BottomLeftCorner = { atlas = 'UI-Frame-Metal-CornerBottomLeft', x = -13, y = -3 },
+			BottomRightCorner = { atlas = 'UI-Frame-Metal-CornerBottomRight', x = 4, y = -3 },
+			TopEdge = { atlas = '_UI-Frame-Metal-EdgeTop' },
+			BottomEdge = { atlas = '_UI-Frame-Metal-EdgeBottom' },
+			LeftEdge = { atlas = '!UI-Frame-Metal-EdgeLeft' },
+			RightEdge = { atlas = '!UI-Frame-Metal-EdgeRight' },
+		},
+	}
+	NineSliceUtil = {
+		ApplyLayoutByName = function(frame, name)
+			frame._nineSlice = name
+			for key, piece in pairs(NineSliceLayouts[name]) do
+				local texture = frame:CreateTexture(nil, 'BORDER')
+				texture:SetAtlas(piece.atlas)
+				frame[key] = texture
+			end
+		end,
+		UpdateCornerCropping = function(container, height)
+			Mock.cropped = { container = container, height = height }
+		end,
+		GetLayout = function(name)
+			return NineSliceLayouts[name]
+		end,
+	}
 end
 
 AddonCompartmentFrame = {

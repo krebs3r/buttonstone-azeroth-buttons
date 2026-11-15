@@ -137,7 +137,9 @@ function Launcher:Place()
 		local free = db.free or { x = UIParent:GetWidth() / 2, y = UIParent:GetHeight() / 2 }
 		button:SetPoint('CENTER', UIParent, 'BOTTOMLEFT', free.x, free.y)
 	end
-	if ns.Bundle.frame and ns.Bundle.frame:IsShown() then
+	-- The panel stays anchored to the button, open or not: gathered buttons need
+	-- a place on the screen even while hidden (WIM reads its button's GetLeft).
+	if ns.Bundle.frame then
 		ns.Bundle:Anchor()
 	end
 end

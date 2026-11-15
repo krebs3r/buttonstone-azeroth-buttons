@@ -9,6 +9,8 @@ local base = {
 	PANEL_TITLE = 'Buttonstone',
 	COUNT = '%d buttons',
 	EMPTY = 'No buttons found yet',
+	EMPTY_RIVAL = '%s keeps the buttons',
+	RIVAL = '%s is active too and gathers the same buttons. Buttonstone leaves them to it; turn one of the two off.',
 	TIP_CLICK = 'Click: show buttons',
 	TIP_DRAG = 'Drag: move',
 
@@ -37,6 +39,9 @@ local locales = {
 	deDE = {
 		COUNT = '%d Buttons',
 		EMPTY = 'Noch keine Buttons gefunden',
+		EMPTY_RIVAL = '%s verwaltet die Buttons',
+		RIVAL = '%s ist auch aktiv und sammelt dieselben Buttons. Buttonstone überlässt sie ihm; '
+			.. 'schalte eins der beiden aus.',
 		TIP_CLICK = 'Klick: Buttons zeigen',
 		TIP_DRAG = 'Ziehen: verschieben',
 

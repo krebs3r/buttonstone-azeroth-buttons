@@ -15,6 +15,7 @@ Locale.lua
 Compat.lua
 Assets.lua
 Theme.lua
+Forever.lua
 Collector.lua
 Bundle.lua
 Launcher.lua

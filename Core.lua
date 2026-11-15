@@ -98,6 +98,7 @@ show these commands.
 local function chat(text)
 	print('|cffffd200Buttonstone|r ' .. text)
 end
+ns.Chat = chat
 
 local commands = {}
 
