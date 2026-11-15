@@ -16,17 +16,16 @@ ns.Options = Options
 
 local WIDTH = 344
 local ROW = 23
-local LIST_ROWS = 6
+-- The list shows up to twelve buttons and grows with them; past that it scrolls.
+local LIST_MAX = 12
 local LIST_ROW = 22
+-- From the list's bottom to the window's: gap, push buttons, gap, footer.
+local BELOW_LIST = 10 + 22 + 8 + 12
 local INSET = { retail = 13, classic = 15, forever = 14 }
 local DIRECTIONS = { 'auto', 'down-left', 'down-right', 'up-left', 'up-right' }
--- The slider fill: Soundstone's and Hourstone's gold.
-local FILL = { 1, 176 / 255, 33 / 255 }
 
--- Forever's control art, as Soundstone and Hourstone wear it there.
+-- Forever's control art, as Hourstone wears it there.
 local ART = {
-	track = { left = 'Minimal_SliderBar_Left', middle = '_Minimal_SliderBar_Middle', right = 'Minimal_SliderBar_Right' },
-	thumb = 'Minimal_SliderBar_Button',
 	field = 'common-dropdown-textholder',
 	arrow = 'common-dropdown-a-button',
 	list = 'common-dropdown-bg',
@@ -34,15 +33,6 @@ local ART = {
 
 local function forever()
 	return T.Skin() == 'forever'
-end
-
-local function hasAll(names)
-	for _, name in pairs(names) do
-		if not T.HasAtlas(name) then
-			return false
-		end
-	end
-	return true
 end
 
 local function text(parent, template, colorKey, value)
@@ -86,74 +76,61 @@ local function checkbox(parent, x, y, label, onClick)
 	return box
 end
 
-local function slider(parent, x, y, width, low, high, step, onChange)
-	local s = CreateFrame('Slider', nil, parent)
-	s:SetOrientation('HORIZONTAL')
-	s:SetSize(width, 18)
-	s:SetPoint('TOPLEFT', parent, 'TOPLEFT', x, -y - 2)
-	s:SetMinMaxValues(low, high)
-	s:SetValueStep(step)
-	if s.SetObeyStepOnDrag then
-		s:SetObeyStepOnDrag(true)
-	end
-	s:EnableMouse(true)
-
-	local skin, inset = T.Skin(), 2
-	local thumb
-	if skin == 'forever' and hasAll(ART.track) then
-		-- MinimalSliderTemplate's pieces at their atlas size; the fill keeps clear of the pill's ends.
-		local left = s:CreateTexture(nil, 'BACKGROUND')
-		left:SetAtlas(ART.track.left, true)
-		left:SetPoint('LEFT', s, 'LEFT', 0, 0)
-		local right = s:CreateTexture(nil, 'BACKGROUND')
-		right:SetAtlas(ART.track.right, true)
-		right:SetPoint('RIGHT', s, 'RIGHT', 0, 0)
-		local middle = s:CreateTexture(nil, 'BACKGROUND')
-		middle:SetAtlas(ART.track.middle, true)
-		middle:SetPoint('LEFT', left, 'RIGHT', 0, 0)
-		middle:SetPoint('RIGHT', right, 'LEFT', 0, 0)
-		inset = 4
-		s.track = { left, middle, right }
-	else
-		local track = CreateFrame('Frame', nil, s)
-		track:SetPoint('LEFT', s, 'LEFT', 0, 0)
-		track:SetPoint('RIGHT', s, 'RIGHT', 0, 0)
-		track:SetHeight(8)
-		if skin == 'forever' then
-			well(track)
-		else
-			T.NineSlice(track, skin == 'retail' and 'ControlRetail' or 'ControlClassic', 2, 6, 'BACKGROUND')
-		end
-		s.track = track
-	end
-
-	if skin == 'forever' and T.HasAtlas(ART.thumb) then
-		thumb = s:CreateTexture(nil, 'OVERLAY', nil, 7)
-		thumb:SetAtlas(ART.thumb, true)
+-- A field's surface: Blizzard's dropdown field on Forever (as Hourstone wears
+-- it there), the family's control sprite elsewhere, the flat well as a stand-in.
+local function fieldSurface(field)
+	local skin = T.Skin()
+	if skin == 'forever' and T.HasAtlas(ART.field) then
+		local holder = field:CreateTexture(nil, 'BACKGROUND')
+		holder:SetAtlas(ART.field)
+		holder:SetPoint('TOPLEFT', field, 'TOPLEFT', -8, 7)
+		holder:SetPoint('BOTTOMRIGHT', field, 'BOTTOMRIGHT', 8, -9)
+		return true
 	elseif skin == 'forever' then
-		thumb = s:CreateTexture(nil, 'OVERLAY', nil, 7)
-		thumb:SetTexture(T.WHITE)
-		thumb:SetSize(6, 14)
-		T.Color(thumb, 'accent')
+		well(field)
 	else
-		thumb = sprite(s, skin == 'retail' and 'GoldThumb' or 'SilverThumb', 'OVERLAY')
-		thumb:SetSize(10, 18)
+		T.NineSlice(field, skin == 'retail' and 'ControlRetail' or 'ControlClassic', 3, 8, 'BACKGROUND')
 	end
-	s:SetThumbTexture(thumb)
-	s.thumb = thumb
+	return false
+end
 
-	local fill = s:CreateTexture(nil, 'ARTWORK')
-	fill:SetTexture(T.WHITE)
-	fill:SetVertexColor(FILL[1], FILL[2], FILL[3], 1)
-	fill:SetHeight(4)
-	fill:SetPoint('LEFT', s, 'LEFT', inset, 0)
-	fill:SetPoint('RIGHT', thumb, 'CENTER', 0, 0)
-	s.fill = fill
-
-	s:SetScript('OnValueChanged', function(_, value)
-		onChange(math.floor(value / step + 0.5) * step)
-	end)
-	return s
+-- A value in fixed steps: [-] value [+] in a field, as wide as the direction field.
+local function stepper(parent, x, y, width, low, high, step, format, onChange)
+	local field = CreateFrame('Frame', nil, parent)
+	field:SetSize(width, 22)
+	field:SetPoint('TOPLEFT', parent, 'TOPLEFT', x, -y)
+	fieldSurface(field)
+	field.text = text(field, 'GameFontHighlightSmall', 'text')
+	field.text:SetPoint('CENTER', field, 'CENTER', 0, 0)
+	local function stepButton(symbol, up, point, offset)
+		local b = CreateFrame('Button', nil, field)
+		b:SetSize(22, 20)
+		b:SetPoint(point, field, point, offset, 0)
+		b.label = text(b, 'GameFontNormal', 'title', symbol)
+		b.label:SetPoint('CENTER', b, 'CENTER', 0, 0)
+		local highlight = b:CreateTexture(nil, 'HIGHLIGHT')
+		highlight:SetTexture(T.WHITE)
+		highlight:SetAllPoints(b)
+		highlight:SetVertexColor(1, 1, 1, 0.12)
+		b:SetScript('OnClick', function()
+			local current = field.current or low
+			-- To the next step on the grid, also from a value between steps.
+			local nextValue = up and (math.floor(current / step) + 1) * step or (math.ceil(current / step) - 1) * step
+			onChange(math.max(low, math.min(high, nextValue)))
+		end)
+		return b
+	end
+	field.minus = stepButton('-', false, 'LEFT', 1)
+	field.plus = stepButton('+', true, 'RIGHT', -1)
+	function field:SetValue(value)
+		self.current = value
+		self.text:SetText(format(value))
+		self.minus:SetEnabled(value > low)
+		self.plus:SetEnabled(value < high)
+		self.minus.label:SetAlpha(value > low and 1 or 0.35)
+		self.plus.label:SetAlpha(value < high and 1 or 0.35)
+	end
+	return field
 end
 
 local function dropdown(parent, x, y, width, choices, onSelect)
@@ -162,24 +139,18 @@ local function dropdown(parent, x, y, width, choices, onSelect)
 	field:SetSize(width, 22)
 	field:SetPoint('TOPLEFT', parent, 'TOPLEFT', x, -y)
 	local arrow = field:CreateTexture(nil, 'OVERLAY')
-	if skin == 'forever' and T.HasAtlas(ART.field) and T.HasAtlas(ART.arrow) then
-		-- WowStyle1DropdownTemplate's art, as Hourstone wears it on Forever.
-		local holder = field:CreateTexture(nil, 'BACKGROUND')
-		holder:SetAtlas(ART.field)
-		holder:SetPoint('TOPLEFT', field, 'TOPLEFT', -8, 7)
-		holder:SetPoint('BOTTOMRIGHT', field, 'BOTTOMRIGHT', 8, -9)
+	local framed = fieldSurface(field)
+	if framed and T.HasAtlas(ART.arrow) then
+		-- WowStyle1DropdownTemplate's arrow, as Hourstone wears it on Forever.
 		arrow:SetAtlas(ART.arrow, true)
 		arrow:SetPoint('RIGHT', field, 'RIGHT', 2, -1)
 	else
-		if skin == 'forever' then
-			well(field)
-			T.Color(arrow, 'accent')
-		else
-			T.NineSlice(field, skin == 'retail' and 'ControlRetail' or 'ControlClassic', 3, 8, 'BACKGROUND')
-		end
 		arrow:SetTexture(T.Texture('Arrow'))
 		arrow:SetSize(10, 8)
 		arrow:SetPoint('RIGHT', field, 'RIGHT', -7, 0)
+		if skin == 'forever' then
+			T.Color(arrow, 'accent')
+		end
 	end
 	field.label = text(field, 'GameFontHighlightSmall', 'text')
 	field.label:SetPoint('LEFT', field, 'LEFT', 8, 0)
@@ -275,7 +246,10 @@ local function pushButton(parent, label, red, onClick)
 		end
 		b.label = fs
 	end
-	b:SetSize(124, 22)
+	-- As wide as the label needs: German labels are long, and the client's font wider than the mockup's.
+	local shown = b.label or (b.GetFontString and b:GetFontString())
+	local textWidth = shown and shown:GetStringWidth() or 0
+	b:SetSize(math.max(100, textWidth + 28), 22)
 	b:SetScript('OnClick', onClick)
 	return b
 end
@@ -299,13 +273,13 @@ function Options:BuildList(x, y, width)
 	local frame = self.frame
 	local box = CreateFrame('Frame', nil, frame)
 	box:SetPoint('TOPLEFT', frame, 'TOPLEFT', x, -y)
-	box:SetSize(width, LIST_ROWS * LIST_ROW)
+	box:SetSize(width, LIST_ROW)
 	box:EnableMouseWheel(true)
 	box.offset = 0
 	box.rows = {}
-	for i = 1, LIST_ROWS do
+	for i = 1, LIST_MAX do
 		local row = CreateFrame('Button', nil, box)
-		row:SetSize(width - 8, LIST_ROW)
+		row:SetSize(width, LIST_ROW)
 		row:SetPoint('TOPLEFT', box, 'TOPLEFT', 0, -(i - 1) * LIST_ROW)
 		row.check = CreateFrame('CheckButton', nil, row, 'UICheckButtonTemplate')
 		row.check:SetSize(20, 20)
@@ -332,28 +306,54 @@ function Options:BuildList(x, y, width)
 		row.check:SetScript('OnClick', toggle)
 		box.rows[i] = row
 	end
-	-- A thin bar shows where the visible rows lie in a longer list.
-	local bar = box:CreateTexture(nil, 'ARTWORK')
-	bar:SetTexture(T.WHITE)
-	bar:SetWidth(3)
-	T.Color(bar, 'title')
-	box.bar = bar
+	box.empty = text(box, 'GameFontDisableSmall', 'muted')
+	box.empty:SetPoint('LEFT', box, 'LEFT', 2, 0)
+
+	-- Blizzard's own scroll bar, in the client's look, for more than twelve
+	-- buttons. Its arrows step one row; its handler is replaced, since it would
+	-- scroll a ScrollFrame parent.
+	local ok, bar = pcall(CreateFrame, 'Slider', nil, box, 'UIPanelScrollBarTemplate')
+	if ok and bar then
+		bar:SetPoint('TOPRIGHT', box, 'TOPRIGHT', 0, -16)
+		bar:SetPoint('BOTTOMRIGHT', box, 'BOTTOMRIGHT', 0, 16)
+		bar:SetMinMaxValues(0, 0)
+		bar:SetValueStep(1)
+		if bar.SetObeyStepOnDrag then
+			bar:SetObeyStepOnDrag(true)
+		end
+		bar.scrollStep = 1
+		bar:SetScript('OnValueChanged', function(_, value)
+			if Options.rendering then
+				return
+			end
+			box.offset = math.floor(value + 0.5)
+			Options:RenderList()
+		end)
+		bar:Hide()
+		box.bar = bar
+	end
 	box:SetScript('OnMouseWheel', function(list, delta)
 		list.offset = list.offset - delta
 		Options:RenderList()
 	end)
 	self.list = box
-	return y + LIST_ROWS * LIST_ROW
+	self.listTop = y
+	return y
 end
 
 function Options:RenderList()
 	local box = self.list
 	local entries = self.entries or {}
-	box.offset = math.max(0, math.min(box.offset, #entries - LIST_ROWS))
+	local scrolling = #entries > LIST_MAX
+	local visible = math.min(#entries, LIST_MAX)
+	box.offset = scrolling and math.max(0, math.min(box.offset, #entries - LIST_MAX)) or 0
+	box:SetHeight(math.max(visible, 1) * LIST_ROW)
+	local rowWidth = box:GetWidth() - ((scrolling and box.bar) and 22 or 0)
 	for i, row in ipairs(box.rows) do
-		local entry = entries[box.offset + i]
+		local entry = i <= visible and entries[box.offset + i] or nil
 		row.entry = entry
 		row:SetShown(entry ~= nil)
+		row:SetWidth(rowWidth)
 		if entry then
 			row.check:SetChecked(entry.included)
 			setIcon(row.icon, entry.button)
@@ -368,14 +368,18 @@ function Options:RenderList()
 			row.source:SetText(note)
 		end
 	end
-	local scrolling = #entries > LIST_ROWS
-	box.bar:SetShown(scrolling)
-	if scrolling then
-		local height = box:GetHeight()
-		box.bar:ClearAllPoints()
-		box.bar:SetHeight(height * LIST_ROWS / #entries)
-		box.bar:SetPoint('TOPRIGHT', box, 'TOPRIGHT', 0, -height * box.offset / #entries)
+	local rival = ns.Collector.rival
+	box.empty:SetText(rival and L.EMPTY_RIVAL:format(rival) or L.EMPTY)
+	box.empty:SetShown(#entries == 0)
+	if box.bar then
+		self.rendering = true
+		box.bar:SetShown(scrolling)
+		box.bar:SetMinMaxValues(0, math.max(0, #entries - LIST_MAX))
+		box.bar:SetValue(box.offset)
+		self.rendering = false
 	end
+	-- The window grows with the list.
+	self.frame:SetHeight(self.listTop + box:GetHeight() + BELOW_LIST + self.inset - 2)
 end
 
 function Options:SetIncluded(entry, included)
@@ -526,38 +530,34 @@ function Options:Build()
 	y = y + 6
 
 	section(L.SEC_PANEL)
-	local sliderX, sliderWidth = x + 74, width - 74 - 44
+	local fieldX, fieldWidth = x + 74, width - 74
 	rowLabel(L.COLUMNS)
-	c.columns = slider(frame, sliderX, y, sliderWidth, 2, 8, 1, function(value)
-		if Options.refreshing then return end
+	c.columns = stepper(frame, fieldX, y, fieldWidth, 2, 8, 1, tostring, function(value)
 		ns.db.panel.columns = value
 		ns.Bundle:Layout()
 		Options:Refresh()
 	end)
-	c.columnsValue = text(frame, 'GameFontHighlightSmall', 'text')
-	c.columnsValue:SetPoint('TOPRIGHT', frame, 'TOPRIGHT', -x, -y - 5)
-	y = y + ROW
+	y = y + ROW + 2
 	rowLabel(L.DIRECTION)
 	local choices = {}
 	for _, key in ipairs(DIRECTIONS) do
 		choices[#choices + 1] = { value = key, text = L['DIR_' .. key] }
 	end
-	c.direction = dropdown(frame, sliderX, y, width - 74, choices, function(value)
+	c.direction = dropdown(frame, fieldX, y, fieldWidth, choices, function(value)
 		ns.db.panel.direction = value
 		ns.Bundle:Anchor()
 		Options:Refresh()
 	end)
 	y = y + ROW + 2
 	rowLabel(L.SIZE)
-	c.size = slider(frame, sliderX, y, sliderWidth, 60, 160, 5, function(value)
-		if Options.refreshing then return end
+	c.size = stepper(frame, fieldX, y, fieldWidth, 60, 160, 10, function(value)
+		return L.PERCENT:format(value)
+	end, function(value)
 		ns.db.panel.size = value
 		ns.Bundle:Refresh()
 		Options:Refresh()
 	end)
-	c.sizeValue = text(frame, 'GameFontHighlightSmall', 'text')
-	c.sizeValue:SetPoint('TOPRIGHT', frame, 'TOPRIGHT', -x, -y - 5)
-	y = y + ROW
+	y = y + ROW + 2
 	c.uniform = checkbox(frame, x, y, L.UNIFORM, function(on)
 		ns.db.panel.uniform = on
 		ns.Bundle:Refresh()
@@ -574,30 +574,31 @@ function Options:Build()
 	y = y + ROW + 6
 
 	c.buttons = section(L.SEC_BUTTONS:format(0))
-	y = self:BuildList(x, y, width) + 10
+	self.inset = inset
+	self:BuildList(x, y, width)
+	local list = self.list
 
+	-- The push buttons and the footer hang below the list, which grows.
 	c.reset = pushButton(frame, L.RESET_POSITION, false, function()
 		ns.Launcher:Reset()
 		Options:Refresh()
 	end)
-	c.reset:SetPoint('TOPRIGHT', frame, 'TOP', -4, -y)
 	c.done = pushButton(frame, L.DONE, true, function()
 		frame:Hide()
 	end)
-	c.done:SetPoint('TOPLEFT', frame, 'TOP', 4, -y)
-	y = y + 22 + 8
+	local pair = c.reset:GetWidth() + 8 + c.done:GetWidth()
+	c.reset:SetPoint('TOPLEFT', list, 'BOTTOM', -pair / 2, -10)
+	c.done:SetPoint('TOPLEFT', c.reset, 'TOPRIGHT', 8, 0)
 
 	local by = text(frame, 'GameFontDisableSmall', 'muted', 'by krebs3r')
-	by:SetPoint('TOPRIGHT', frame, 'TOPRIGHT', -x, -y)
+	by:SetPoint('TOPRIGHT', list, 'BOTTOMRIGHT', 0, -(10 + 22 + 8))
 	local heart = frame:CreateTexture(nil, 'ARTWORK')
 	heart:SetTexture(T.Texture('Heart'))
 	heart:SetSize(10, 10)
 	heart:SetPoint('RIGHT', by, 'LEFT', -3, 0)
 	c.footer = text(frame, 'GameFontDisableSmall', 'muted', L.FOOTER:format(C.Version()))
 	c.footer:SetPoint('RIGHT', heart, 'LEFT', -3, 0)
-	y = y + 12
 
-	frame:SetHeight(y + inset - 2)
 	frame:SetScript('OnShow', function()
 		Options:Refresh()
 	end)
@@ -609,20 +610,16 @@ function Options:Refresh()
 		return
 	end
 	local c, db = self.controls, ns.db
-	self.refreshing = true
 	c.attached:SetChecked(db.launcher.attached)
 	if c.compartment then
 		c.compartment:SetChecked(db.compartment)
 	end
 	c.columns:SetValue(db.panel.columns)
-	c.columnsValue:SetText(db.panel.columns)
 	c.direction:SetValue(db.panel.direction)
 	c.size:SetValue(db.panel.size)
-	c.sizeValue:SetText(L.PERCENT:format(db.panel.size))
 	c.uniform:SetChecked(db.panel.uniform)
 	c.header:SetChecked(db.panel.header)
 	c.autoClose:SetChecked(db.panel.autoClose)
-	self.refreshing = false
 
 	self.entries = ns.Collector:Entries()
 	local found = 0

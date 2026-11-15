@@ -656,8 +656,27 @@ function Frame:SetHighlightAtlas(atlas)
 	self._highlightAtlas = atlas
 end
 
--- A click as the client delivers it: a check button flips first.
+function Frame:SetEnabled(value)
+	self._disabled = not value
+end
+
+function Frame:Enable()
+	self._disabled = false
+end
+
+function Frame:Disable()
+	self._disabled = true
+end
+
+function Frame:IsEnabled()
+	return not self._disabled
+end
+
+-- A click as the client delivers it: a check button flips first, a disabled button does nothing.
 function Mock.click(button, mouse)
+	if button._disabled then
+		return
+	end
 	if button._type == 'CheckButton' then
 		button._checked = not button._checked
 	end

@@ -49,28 +49,35 @@ local function regionsUsing(frame, name)
 	end
 	return found
 end
-local thumb = c.size.thumb
 if skin ~= 'forever' then
 	equal(regionsUsing(options, skin == 'retail' and 'RetailPanel' or 'ClassicPanel'), 9, 'the sprite frame')
 	equal(regionsUsing(ns.Options.close, 'HeaderClose'), 1, "Soundstone's close button")
-	check(thumb:GetTexture():find(skin == 'retail' and 'GoldThumb' or 'SilverThumb', 1, true), 'sprite thumb')
+	equal(regionsUsing(c.size, skin == 'retail' and 'ControlRetail' or 'ControlClassic'), 9, 'stepper in the control sprite')
 	equal(c.done._template, nil, 'sprite push button')
+	equal(c.reset:GetWidth(), math.max(100, #L.RESET_POSITION * 6 + 28), 'push button as wide as its label')
 	equal(c.done.label:GetText(), L.DONE, 'push button label')
 	equal(regionsUsing(options, 'Rivet'), 6, "Soundstone's grip")
 elseif expect.art then
 	check(ns.Options.surface.border.pieces.topLeft, "Forever's frame, cut to the window")
 	equal(ns.Options.close._normalAtlas, 'RedButton-Exit', "Forever's red close button")
-	equal(thumb:GetAtlas(), 'Minimal_SliderBar_Button', "Forever's slider thumb")
-	equal(c.size.track[1]:GetAtlas(), 'Minimal_SliderBar_Left', "Forever's slider track")
+	local holder
+	for _, region in ipairs({ c.size:GetRegions() }) do
+		holder = holder or (region:GetAtlas() == 'common-dropdown-textholder' and region)
+	end
+	check(holder, "stepper in Forever's field art")
 	equal(c.done._template, 'UIPanelButtonTemplate', "Blizzard's push button")
 	equal(c.done:GetText(), L.DONE, 'push button label')
 	equal((ns.Options.title:GetPoint(1)), 'TOP', 'title centred in the strip')
 else
 	check(ns.Options.close.cross, 'flat close button')
-	equal(thumb:GetTexture(), ns.Theme.WHITE, 'flat slider thumb')
+	equal(regionsUsing(c.size, ns.Theme.WHITE), 5, 'flat stepper: a well and four lines')
 	equal(regionsUsing(options, 'Panel'), 0, 'no sprite frame')
 end
 equal(c.attached._template, 'UICheckButtonTemplate', "the client's own checkboxes")
+equal(c.columns:GetWidth(), c.direction:GetWidth(), 'steppers as wide as the direction field')
+local _, _, _, doneX = c.done:GetPoint(1)
+equal(select(2, c.done:GetPoint(1)), c.reset, 'done sits right of reset')
+equal(doneX, 8, 'with a gap')
 check(c.footer:GetText():find('dev', 1, true), 'version in the footer')
 
 --[[ The main button ]]
@@ -100,16 +107,39 @@ else
 end
 
 --[[ The panel's settings ]]
-c.columns:SetValue(6)
-equal(ns.db.panel.columns, 6, 'columns from the slider')
-equal(c.columnsValue:GetText(), 6, 'columns shown')
+equal(c.columns.text:GetText(), '4', 'columns shown')
+click(c.columns.plus)
+click(c.columns.plus)
+equal(ns.db.panel.columns, 6, 'two steps up: six columns')
+equal(c.columns.text:GetText(), '6', 'and shown')
 equal(#ns.Bundle.shown >= 6 and select(2, ns.Bundle.shown[6].slot:GetPoint(1)) == panel, true, 'laid out again')
-c.columns:SetValue(4)
-c.size:SetValue(120)
-equal(ns.db.panel.size, 120, 'size from the slider')
+click(c.columns.plus)
+click(c.columns.plus)
+equal(ns.db.panel.columns, 8, 'up to eight')
+check(not c.columns.plus:IsEnabled(), 'no step past eight')
+click(c.columns.plus)
+equal(ns.db.panel.columns, 8, 'stays at eight')
+for _ = 1, 4 do
+	click(c.columns.minus)
+end
+equal(ns.db.panel.columns, 4, 'back to four')
+click(c.size.plus)
+click(c.size.plus)
+equal(ns.db.panel.size, 120, 'size in steps of ten')
 equal(panel:GetScale(), 1.2, 'panel scaled')
-equal(c.sizeValue:GetText(), L.PERCENT:format(120), 'size shown')
-c.size:SetValue(100)
+equal(c.size.text:GetText(), L.PERCENT:format(120), 'size shown')
+click(c.size.minus)
+click(c.size.minus)
+equal(ns.db.panel.size, 100, 'size back')
+ns.db.panel.size = 105
+ns.Options:Refresh()
+click(c.size.minus)
+equal(ns.db.panel.size, 100, 'from between two steps, down to the step below')
+ns.db.panel.size = 105
+ns.Options:Refresh()
+click(c.size.plus)
+equal(ns.db.panel.size, 110, 'and up to the step above')
+click(c.size.minus)
 
 click(c.direction)
 check(c.direction.popup:IsShown(), 'the direction list opens')
@@ -186,12 +216,11 @@ check(hiddenRow.source:GetText():find(L.LIST_HIDDEN, 1, true), 'a hidden button 
 local iconTexture = rowOf('LibDBIcon10_Coinkeeper').icon:GetTexture()
 equal(iconTexture, 'Interface\\Icons\\Coinkeeper', "the button's own icon in the list")
 
-check(#entries > 6, 'more entries than rows')
-check(ns.Options.list.bar:IsShown(), 'the scroll bar shows')
-Mock.run(ns.Options.list, 'OnMouseWheel', -1)
-equal(rows[1].entry, entries[2], 'the wheel scrolls down a row')
-Mock.run(ns.Options.list, 'OnMouseWheel', 20)
-equal(rows[1].entry, entries[1], 'and not past the top')
+local list = ns.Options.list
+check(#entries <= 12, 'up to twelve buttons')
+check(not list.bar:IsShown(), 'no scroll bar for twelve or fewer')
+equal(list:GetHeight(), #entries * 22, 'the list grows with its buttons')
+equal(options:GetHeight(), ns.Options.listTop + #entries * 22 + 52 + ns.Options.inset - 2, 'and the window with it')
 
 ns.db.excluded.GoneMinimapButton = true
 ns.Options:Refresh()
@@ -204,8 +233,31 @@ end
 check(gone and gone.missing, "an excluded addon that is not loaded stays listed")
 equal(gone.label, 'Gone', 'by its name')
 equal(c.buttons:GetText(), L.SEC_BUTTONS:format(#ns.Options.entries - 1), 'not counted as found')
+
+for i = 1, 6 do
+	ns.db.excluded['Gone' .. i .. 'MinimapButton'] = true
+end
+ns.Options:Refresh()
+entries = ns.Options.entries
+check(#entries > 12, 'more than twelve')
+equal(list:GetHeight(), 12 * 22, 'the list stops growing at twelve')
+check(list.bar:IsShown(), "Blizzard's scroll bar shows")
+equal(list.bar._template, 'UIPanelScrollBarTemplate', "the client's own scroll bar")
+equal(select(2, list.bar:GetMinMaxValues()), #entries - 12, 'it scrolls as far as the list is longer')
+Mock.run(list, 'OnMouseWheel', -1)
+equal(rows[1].entry, entries[2], 'the wheel scrolls down a row')
+equal(list.bar:GetValue(), 1, 'the scroll bar follows')
+list.bar:SetValue(3)
+equal(rows[1].entry, entries[4], 'the scroll bar scrolls the list')
+Mock.run(list, 'OnMouseWheel', 20)
+equal(rows[1].entry, entries[1], 'and not past the top')
+check(rows[1]:GetWidth() < list:GetWidth(), 'rows make room for the bar')
+for i = 1, 6 do
+	ns.db.excluded['Gone' .. i .. 'MinimapButton'] = nil
+end
 ns.db.excluded.GoneMinimapButton = nil
 ns.Options:Refresh()
+check(not list.bar:IsShown(), 'bar gone again')
 
 --[[ The buttons at the bottom ]]
 ns.db.launcher.angle = 90
