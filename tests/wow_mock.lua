@@ -384,6 +384,11 @@ function Texture:GetText()
 	return self._text
 end
 
+-- Six units a character: enough to tell a longer text from a shorter one.
+function Texture:GetStringWidth()
+	return #(self._text or '') * 6
+end
+
 function Texture:SetTextColor(...)
 	self._textColor = { ... }
 end

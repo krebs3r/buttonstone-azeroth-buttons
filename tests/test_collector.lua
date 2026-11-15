@@ -102,6 +102,17 @@ umbra:SetHighlightTexture('Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight')
 
 local backdropButton = hourstoneLike('OldStyleMinimapButton', 'Backdropper', MinimapBackdrop)
 
+-- Like WIM: on its own events it sets strata and level along with its place.
+local wim = hourstoneLike('WIM3MinimapButton', 'WIM')
+function wim:UpdatePosition()
+	self:SetFrameStrata(Minimap:GetFrameStrata())
+	self:SetParent(Minimap)
+	self:SetFrameLevel(8)
+	self:ClearAllPoints()
+	self:SetPoint('CENTER', Minimap, 'CENTER', 30, -60)
+end
+wim:UpdatePosition()
+
 -- Things that are not buttons, or not ours to take.
 plainFrame('Button', 'HandyNotesPin12', 'HandyNotes', 12, 12)
 plainFrame('Button', 'GatherMateNodeHerb', 'GatherMate2', 16, 16)
@@ -126,14 +137,14 @@ for _, record in ipairs(ns.Collector.records) do
 	gathered[record.name] = record
 end
 for _, name in ipairs({ 'LibDBIcon10_Bagsmith', 'LibDBIcon10_Coinkeeper', 'LibDBIcon10_Hiddenone', 'LibDBIcon10_Fader',
-	'HourstoneMinimapButton', 'UmbraMinimapButton', 'OldStyleMinimapButton' }) do
+	'HourstoneMinimapButton', 'UmbraMinimapButton', 'OldStyleMinimapButton', 'WIM3MinimapButton' }) do
 	check(gathered[name], 'gathered ' .. name)
 end
 for _, name in ipairs({ 'HandyNotesPin12', 'GatherMateNodeHerb', 'MapCoordsText', 'PrettyMinimapGlow',
 	'SecureThingMinimapButton', 'ExcludedMinimapButton', 'MiniMapTracking', 'GameTimeFrame', 'ButtonstoneLauncher' }) do
 	check(not gathered[name], 'left alone: ' .. name)
 end
-equal(#ns.Collector.records, 7, 'gathered count')
+equal(#ns.Collector.records, 8, 'gathered count')
 check(decoration:GetParent() == Minimap, 'a decoration without a click stays where it was')
 
 equal(gathered.LibDBIcon10_Bagsmith.label, 'Bagsmith', 'LibDBIcon name')
@@ -164,6 +175,12 @@ equal(bag:GetParent(), slot, 'SetParent from outside does nothing')
 equal(bag:GetNumPoints(), 1, 'one point')
 equal(select(2, bag:GetPoint(1)), slot, 'still centred in its slot')
 
+local wimSlot = wim:GetParent()
+wim:UpdatePosition()
+equal(wim:GetParent(), wimSlot, 'WIM-like button stays in its slot')
+equal(wim:GetFrameStrata(), 'HIGH', 'its own SetFrameStrata does not send it behind the panel')
+check(wim:GetFrameLevel() > wimSlot:GetFrameLevel(), 'its own SetFrameLevel does not either')
+
 equal(fader.showOnMouseover, false, 'LibDBIcon fading off while gathered')
 equal(fader:GetAlpha(), 1, 'faded button visible')
 
@@ -190,15 +207,17 @@ end
 local function size()
 	return panel:GetWidth(), panel:GetHeight()
 end
-equal(#ns.Bundle.shown, 6, 'a hidden button takes no place')
+equal(#ns.Bundle.shown, 7, 'a hidden button takes no place')
 check(not gathered.LibDBIcon10_Hiddenone.slot:IsShown(), 'its slot is hidden')
 local order = {}
 for i, record in ipairs(ns.Bundle.shown) do
 	order[i] = record.label
 end
-equal(table.concat(order, ', '), 'Backdropper, Bagsmith, Coinkeeper, Fader, Hourstone - Azeroth Hours, Umbra Unit Frames', 'sorted by name')
+equal(table.concat(order, ', '), 'Backdropper, Bagsmith, Coinkeeper, Fader, Hourstone - Azeroth Hours, Umbra Unit Frames, WIM', 'sorted by name')
 local width, height = size()
-equal(width, math.max(4 * 32 + 3 * 4 + 2 * m.padX, m.minWidth), 'width for four columns')
+local headerWidth = 2 * (m.padX - 1) + 18 + 5 + #ns.L.PANEL_TITLE * 6 + 5 + #ns.Bundle.count:GetText() * 6 + 8 + 15
+equal(ns.Bundle:HeaderWidth(), headerWidth, 'header needs logo, title, count and gear side by side')
+equal(width, math.max(4 * 32 + 3 * 4 + 2 * m.padX, m.minWidth, headerWidth), 'width for four columns and the header')
 equal(height, m.padTopHeader + 2 * 32 + 4 + m.padBottom, 'height for two rows')
 local point, relative, _, x, y = ns.Bundle.shown[1].slot:GetPoint(1)
 equal(point, 'TOPLEFT', 'slot anchor')
@@ -208,16 +227,16 @@ equal(y, -m.padTopHeader, 'first row below the header')
 _, _, _, x, y = ns.Bundle.shown[5].slot:GetPoint(1)
 equal(x, (width - 140) / 2, 'fifth slot starts the second row')
 equal(y, -(m.padTopHeader + 36), 'second row')
-equal(ns.Bundle.count:GetText(), (expect.locale == 'deDE' and '6 Buttons' or '6 buttons'), 'count in the header')
+equal(ns.Bundle.count:GetText(), (expect.locale == 'deDE' and '7 Buttons' or '7 buttons'), 'count in the header')
 
 hidden:Show()
-equal(#ns.Bundle.shown, 7, 'shown later, placed at once')
+equal(#ns.Bundle.shown, 8, 'shown later, placed at once')
 hidden:Hide()
-equal(#ns.Bundle.shown, 6, 'hidden again, gone at once')
+equal(#ns.Bundle.shown, 7, 'hidden again, gone at once')
 
 local late = lib:Create('Questline')
 check(ns.Collector.byButton[late], 'a LibDBIcon button made after login is gathered')
-equal(#ns.Bundle.shown, 7, 'and placed')
+equal(#ns.Bundle.shown, 8, 'and placed')
 
 Mock.tainting = 'Ondemand'
 local onDemand = hourstoneLike('OndemandMinimapButton', 'Ondemand')
@@ -228,13 +247,14 @@ check(ns.Collector.byButton[onDemand], 'an addon loaded later is looked at')
 
 ns.db.panel.header = false
 ns.Bundle:Layout()
-equal(select(2, size()), m.padTop + 2 * 32 + 4 + m.padBottom, 'no header, less height')
+equal(#ns.Bundle.shown, 9, 'nine shown')
+equal(select(2, size()), m.padTop + 3 * 32 + 2 * 4 + m.padBottom, 'no header, less height')
 check(not ns.Bundle.header:IsShown() and not ns.Bundle.rule:IsShown(), 'header hidden')
 ns.db.panel.header = true
 ns.db.panel.columns = 8
 ns.Bundle:Layout()
-equal(select(2, size()), m.padTopHeader + 32 + m.padBottom, 'one row with eight columns')
-equal(size(), 8 * 32 + 7 * 4 + 2 * m.padX, 'eight columns wide')
+equal(select(2, size()), m.padTopHeader + 2 * 32 + 4 + m.padBottom, 'two rows with eight columns')
+equal(size(), math.max(8 * 32 + 7 * 4 + 2 * m.padX, ns.Bundle:HeaderWidth()), 'eight columns wide')
 ns.db.panel.columns = 4
 ns.Bundle:Layout()
 

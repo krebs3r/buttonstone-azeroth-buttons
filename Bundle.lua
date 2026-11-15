@@ -191,8 +191,8 @@ function Bundle:Adopt(record)
 	methods.SetParent(button, slot)
 	methods.ClearAllPoints(button)
 	methods.SetPoint(button, 'CENTER', slot, 'CENTER', 0, 0)
-	button:SetFrameStrata(self.frame:GetFrameStrata())
-	button:SetFrameLevel(slot:GetFrameLevel() + 2)
+	methods.SetFrameStrata(button, self.frame:GetFrameStrata())
+	methods.SetFrameLevel(button, slot:GetFrameLevel() + 2)
 	if ns.db.panel.uniform then
 		style(record)
 	end
@@ -242,9 +242,13 @@ function Bundle:Layout()
 	local gridWidth = columns * SLOT + (columns - 1) * GAP
 	local gridHeight = rows * SLOT + (rows - 1) * GAP
 	local top = p.header and m.padTopHeader or m.padTop
+	self.count:SetText(L.COUNT:format(count))
 	local width = gridWidth + 2 * m.padX
 	if p.header or count == 0 then
 		width = math.max(width, m.minWidth)
+	end
+	if p.header then
+		width = math.max(width, self:HeaderWidth())
 	end
 	frame:SetSize(width, top + gridHeight + m.padBottom)
 
@@ -257,10 +261,16 @@ function Bundle:Layout()
 
 	self.header:SetShown(p.header)
 	self.rule:SetShown(p.header)
-	self.count:SetText(L.COUNT:format(count))
 	self.empty:SetShown(count == 0)
 	self.empty:ClearAllPoints()
 	self.empty:SetPoint('CENTER', frame, 'TOPLEFT', width / 2, -(top + gridHeight / 2))
+end
+
+-- Room for logo, title, count and gear side by side: the client's font can be
+-- wider than the mockup's, and German counts are longer.
+function Bundle:HeaderWidth()
+	local m = T.Metrics()
+	return 2 * (m.padX - 1) + 18 + 5 + self.title:GetStringWidth() + 5 + self.count:GetStringWidth() + 8 + 15
 end
 
 -- Settings changed: the look of every slot, the layout, the place.
@@ -391,6 +401,7 @@ function Bundle:Init()
 	title:SetPoint('LEFT', logo, 'RIGHT', 5, 0)
 	title:SetText(L.PANEL_TITLE)
 	T.Color(title, 'title', 'SetTextColor')
+	self.title = title
 
 	local count = header:CreateFontString(nil, 'ARTWORK', 'GameFontNormalSmall')
 	count:SetPoint('LEFT', title, 'RIGHT', 5, -1)

@@ -8,10 +8,12 @@ an addon made and that look like a button. Blizzard's own frames are never
 taken here.
 
 Taking a button means moving it into the panel and keeping it there:
-SetPoint, ClearAllPoints, SetAllPoints and SetParent are shadowed on the
-button itself, because many addons put their button back on the rim on
-their own events. Everything changed is written down first, so releasing a
-button restores it exactly and needs no /reload: the shadowing fields are
+SetPoint, ClearAllPoints, SetAllPoints, SetParent, SetFrameStrata and
+SetFrameLevel are shadowed on the button itself, because many addons put
+their button back on the rim on their own events, and some (WIM) set its
+strata and level there too, which would hide it behind the panel.
+Everything changed is written down first, so releasing a button restores
+it exactly and needs no /reload: the shadowing fields are
 removed (the widget's own methods show through again), and parent, points,
 size, scale, strata, level, drag scripts and fading come back.
 --]]
@@ -21,7 +23,7 @@ local Collector = {
 }
 ns.Collector = Collector
 
-local BLOCKED = { 'SetPoint', 'ClearAllPoints', 'SetAllPoints', 'SetParent' }
+local BLOCKED = { 'SetPoint', 'ClearAllPoints', 'SetAllPoints', 'SetParent', 'SetFrameStrata', 'SetFrameLevel' }
 
 -- Frames of Buttonstone's own; never gathered.
 local OWN = { ButtonstoneLauncher = true, ButtonstonePanel = true }
@@ -184,8 +186,13 @@ function Collector:Gather(button, name, source, libName)
 	end
 	local methods = getmetatable(button)
 	methods = methods and methods.__index
-	if type(methods) ~= 'table' or type(methods.SetPoint) ~= 'function' or type(methods.SetParent) ~= 'function' then
+	if type(methods) ~= 'table' then
 		return nil
+	end
+	for _, method in ipairs(BLOCKED) do
+		if type(methods[method]) ~= 'function' then
+			return nil
+		end
 	end
 	local ok, saved = pcall(capture, button)
 	if not ok then
