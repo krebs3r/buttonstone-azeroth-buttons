@@ -11,7 +11,7 @@ import sys
 from lupa.lua51 import LuaRuntime
 
 ROOT = Path(__file__).resolve().parents[1]
-TESTS = ["test_core.lua"]
+TESTS = ["test_core.lua", "test_collector.lua"]
 
 # name, WOW_PROJECT_ID, defines WOW_PROJECT_CAMELOT, interface, locale, has the Addons menu, look
 CLIENTS = [

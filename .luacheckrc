@@ -25,8 +25,11 @@ globals = {
 read_globals = {
 	-- Client and project
 	'GetBuildInfo', 'GetLocale', 'WOW_PROJECT_ID', 'WOW_PROJECT_MAINLINE', 'WOW_PROJECT_CAMELOT',
-	'C_AddOns', 'GetAddOnMetadata', 'C_Timer', 'InCombatLockdown', 'issecretvalue',
+	'C_AddOns', 'GetAddOnMetadata', 'C_Timer', 'InCombatLockdown', 'issecretvalue', 'issecurevariable',
+
+	'GetTime', 'GetCursorPosition', 'hooksecurefunc', 'LibStub',
 
 	-- Frames
-	'CreateFrame', 'UIParent', 'AddonCompartmentFrame',
+	'CreateFrame', 'UIParent', 'AddonCompartmentFrame', 'GameTooltip', 'UISpecialFrames', 'Menu',
+	'Minimap', 'MinimapBackdrop', 'GetMinimapShape',
 }

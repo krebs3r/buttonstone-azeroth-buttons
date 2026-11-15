@@ -90,7 +90,7 @@ check(line:find('dev', 1, true) and line:find(ns.L['LOOK_' .. expect.look], 1, t
 
 Mock.printed = {}
 SlashCmdList.BUTTONSTONE('')
-check(#Mock.printed == 3 and Mock.printed[1]:find(ns.L.HELP_HEADER, 1, true), 'help on a bare command')
+check(#Mock.printed == 7 and Mock.printed[1]:find(ns.L.HELP_HEADER, 1, true), 'help on a bare command')
 
 Mock.printed = {}
 SlashCmdList.BUTTONSTONE('  VERSION  ')
