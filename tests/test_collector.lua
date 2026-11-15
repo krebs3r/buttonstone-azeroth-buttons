@@ -487,14 +487,17 @@ ns.Bundle:Anchor()
 equal((panel:GetPoint(1)), 'BOTTOMLEFT', 'direction from the settings')
 ns.db.panel.direction = 'auto'
 
-Mock.printed = {}
 Mock.run(launcher, 'OnClick', 'RightButton')
-check((Mock.printed[1] or ''):find(ns.L.HELP_HEADER, 1, true), 'right-click shows the commands for now')
+check(ButtonstoneOptions and ButtonstoneOptions:IsShown(), 'right-click opens the options')
+Mock.run(launcher, 'OnClick', 'RightButton')
+check(not ButtonstoneOptions:IsShown(), 'and closes them again')
 
 Mock.run(launcher, 'OnEnter')
 equal(GameTooltip._owner, launcher, 'tooltip on the main button')
 equal(GameTooltip._lines[1], ns.L.TITLE, 'tooltip title')
 equal(GameTooltip._lines[2], ns.L.TIP_CLICK, 'tooltip click line')
+equal(GameTooltip._lines[3], ns.L.TIP_RIGHT, 'tooltip right-click line')
+equal(GameTooltip._lines[4], ns.L.TIP_DRAG, 'tooltip drag line')
 
 --[[ Detached ]]
 SlashCmdList.BUTTONSTONE('detach')

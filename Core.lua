@@ -91,9 +91,8 @@ function ns.LoadSettings(saved)
 end
 
 --[[ Slash commands
-/buttonstone and /bst. The options window arrives in a later step
-(docs/PLAN.md, phase 6); until then the right-click and the panel's gear
-show these commands.
+/buttonstone and /bst alone open the options; with a word they do what the
+help lists.
 --]]
 local function chat(text)
 	print('|cffffd200Buttonstone|r ' .. text)
@@ -108,7 +107,8 @@ end
 
 function commands.help()
 	chat(L.HELP_HEADER)
-	for _, key in ipairs({ 'HELP_LIST', 'HELP_DETACH', 'HELP_ATTACH', 'HELP_RESET', 'HELP_VERSION', 'HELP_HELP' }) do
+	for _, key in ipairs({ 'HELP_OPTIONS', 'HELP_LIST', 'HELP_DETACH', 'HELP_ATTACH', 'HELP_RESET', 'HELP_VERSION',
+		'HELP_HELP' }) do
 		print('  ' .. L[key])
 	end
 end
@@ -133,20 +133,28 @@ end
 
 function commands.detach()
 	ns.Launcher:Detach()
+	ns.Options:Refresh()
 	chat(L.DETACHED)
 end
 
 function commands.attach()
 	ns.Launcher:Attach()
+	ns.Options:Refresh()
 	chat(L.ATTACHED)
 end
 
 function commands.reset()
 	ns.Launcher:Reset()
+	ns.Options:Refresh()
 	chat(L.RESET)
 end
 
-ns.ShowOptions = commands.help
+function ns.ShowOptions()
+	ns.Options:Toggle()
+end
+commands[''] = ns.ShowOptions
+commands.options = ns.ShowOptions
+commands.config = ns.ShowOptions
 
 SLASH_BUTTONSTONE1 = '/buttonstone'
 SLASH_BUTTONSTONE2 = '/bst'
@@ -157,6 +165,41 @@ SlashCmdList.BUTTONSTONE = function(input)
 	end
 	local command = commands[word] or commands.help
 	command()
+end
+
+--[[ The Addons menu
+Retail and Forever list addons in a menu below the minimap clock. Buttonstone
+puts itself there when the setting says so: a click shows the buttons, a
+right-click the options. The client offers no way to take an entry out again,
+so switching it off takes effect after /reload.
+--]]
+local function compartment()
+	if not ns.db.compartment or not C.HasAddonCompartment() then
+		return
+	end
+	local function mouseOf(input)
+		return type(input) == 'table' and input.buttonName or input
+	end
+	pcall(AddonCompartmentFrame.RegisterAddon, AddonCompartmentFrame, {
+		text = L.TITLE,
+		icon = ns.Theme.Texture('Logo'),
+		notCheckable = true,
+		func = function(_, input)
+			if mouseOf(input) == 'RightButton' then
+				ns.ShowOptions()
+			else
+				ns.Bundle:Toggle()
+			end
+		end,
+		funcOnEnter = function(button)
+			ns.Launcher.ShowTooltip(type(button) == 'table' and button or AddonCompartmentFrame, true)
+		end,
+		funcOnLeave = function()
+			if GameTooltip then
+				GameTooltip:Hide()
+			end
+		end,
+	})
 end
 
 --[[ Start-up
@@ -180,6 +223,7 @@ events:SetScript('OnEvent', function(self, event, name)
 		ns.Bundle:Init()
 		ns.Launcher:Init()
 		ns.ready = true
+		compartment()
 		ns.Collector:Init()
 	end
 end)
