@@ -9,3 +9,5 @@ dist/
 WTF/
 SavedVariables/
 tools/.wowpath
+RELEASE_NOTES.md
+.release/

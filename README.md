@@ -6,20 +6,27 @@
 
 Buttonstone gathers the minimap buttons of your other addons into one button on the minimap rim. A click opens them in a small panel that wears your client's own look: Retail's gold, Classic's iron and stone, and WoW: Forever's bronze. It joins [Hourstone – Azeroth Hours](https://github.com/krebs3r/hourstone-azeroth-hours) and [Soundstone – Azeroth Audio](https://github.com/krebs3r/soundstone-azeroth-audio).
 
-**Status: in development.** There is no release yet. The look is settled in the [mockup](docs/design/mockup.html), the plan in [docs/PLAN.md](docs/PLAN.md).
+![Buttonstone on Retail](docs/curseforge/screenshots/panel-retail.png) ![Buttonstone on WoW: Forever](docs/curseforge/screenshots/panel-forever.png) ![Buttonstone on TBC Anniversary](docs/curseforge/screenshots/panel-classic.png)
 
-## Planned for 0.1
+**Status:** 0.1 is built and checked in the game; the first release follows once the CurseForge and Wago projects exist. The look was settled in the [mockup](docs/design/mockup.html), the plan is in [docs/PLAN.md](docs/PLAN.md).
 
-- One main button on the minimap rim, dragged along it, or detached and placed anywhere.
-- A panel with a grid of the gathered buttons: columns, opening direction and size adjustable, closes when the mouse leaves.
+## What it does
+
+- One button on the minimap rim, dragged along it, or detached and placed anywhere.
+- A panel with a grid of the gathered buttons, sorted by name, opening towards the side with more room and closing when the mouse leaves.
 - Uniform slots in the client's look, so every addon's button matches; can be switched off.
-- Every LibDBIcon button and recognised buttons of their own; Blizzard's buttons only when you switch them on.
-- Exclude any button with one click; it goes back to the minimap at once, without `/reload`.
+- Every LibDBIcon button and the buttons addons make themselves; Blizzard's own buttons, map pins and protected frames stay where they are.
+- An options window (`/bst`, right-click, or the panel's gear) with every setting and a checkbox for each button; a button you untick goes back to its own place at once, without `/reload`.
+- With MinimapButtonButton or a similar addon active, Buttonstone leaves the buttons to it and says so.
 - English and German.
 
 ## Clients
 
-Retail (Midnight), Mists of Pandaria Classic, TBC Classic Anniversary, Classic Era and WoW: Forever, from one package.
+Retail (Midnight), Mists of Pandaria Classic, TBC Classic Anniversary, Classic Era and WoW: Forever, from one package. The look follows the client: Soundstone's gold sprites on Retail, its iron and stone on the Classic clients, Blizzard's own bronze frame on WoW: Forever.
+
+## Installation
+
+From CurseForge or Wago once released, or from a [GitHub release](https://github.com/krebs3r/buttonstone-azeroth-buttons/releases): unpack it into the client's `Interface/AddOns` folder so that `Interface/AddOns/Buttonstone/Buttonstone_Mainline.toc` exists.
 
 ## Development
 
