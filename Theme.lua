@@ -137,24 +137,24 @@ function T.WindowLayout()
 	return type(NineSliceLayouts) == 'table' and NineSliceLayouts[T.window.layout] or nil
 end
 
--- The window frame (with its title strip, and cut to its band without it)
--- and the icon frames. Each falls back to the flat look on its own.
+-- The window frame's pieces (cut to the panel, with or without the title
+-- strip) and the icon frames. Each falls back to the flat look on its own.
 function T.Art()
 	local art = {}
 	if T.Skin() ~= 'forever' then
 		return art
 	end
 	local layout = T.WindowLayout()
-	local util = type(NineSliceUtil) == 'table' and NineSliceUtil
-	if util and type(util.ApplyLayoutByName) == 'function' and type(layout) == 'table' then
+	if type(layout) == 'table' then
 		art.window = true
 		for _, piece in pairs(layout) do
 			if type(piece) == 'table' and piece.atlas and not T.HasAtlas(piece.atlas) then
 				art.window = false
 			end
 		end
-		-- Without the strip the top pieces keep their band (to 3 units below the
-		-- frame's top) and the bottom corners their lowest 8 units: the pieces must reach that far.
+		-- The top pieces are cut down to the strip's end (26.4 units below the
+		-- frame's top) and the bottom corners to their lowest 8 units (Forever.lua):
+		-- the pieces must reach that far.
 		local function reaches(key, need)
 			local piece = layout[key]
 			local info = type(piece) == 'table' and piece.atlas and T.AtlasInfo(piece.atlas)
@@ -163,7 +163,8 @@ function T.Art()
 		if art.window then
 			local top = type(layout.TopLeftCorner) == 'table' and (layout.TopLeftCorner.y or 0) or 0
 			local bottom = type(layout.BottomLeftCorner) == 'table' and (layout.BottomLeftCorner.y or 0) or 0
-			art.window = reaches('TopLeftCorner', top + 3) and reaches('TopRightCorner', top + 3) and reaches('TopEdge', top + 3)
+			local strip = top + 26.4
+			art.window = reaches('TopLeftCorner', strip) and reaches('TopRightCorner', strip) and reaches('TopEdge', strip)
 				and reaches('BottomLeftCorner', 8 - bottom) and reaches('BottomRightCorner', 8 - bottom)
 				and reaches('BottomEdge', 1) and reaches('LeftEdge', 1) and reaches('RightEdge', 1)
 		end

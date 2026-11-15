@@ -4,10 +4,10 @@ local T = ns.Theme
 --[[ WoW: Forever's own look
 Ported from Soundstone 0.4, where it was measured and seen in the game:
 
-- With the header, the panel wears Blizzard's ButtonFrameTemplateNoPortrait
-  nine-slice on a frame of its own above the content, with the client's rock
-  ground and top streaks, the title in the title strip and the gear as a red
-  UIPanelButtonTemplate header button.
+- With the header, the panel wears the pieces of Blizzard's
+  ButtonFrameTemplateNoPortrait on a frame of its own above the content, with
+  the client's rock ground and top streaks, the title in the title strip and
+  the gear as a red UIPanelButtonTemplate header button.
 - Without the header, the same frame cut to its metal band, as Soundstone's
   compact bar wears it.
 - Each slot wears the action bar's icon frame, its pressed art while held and
@@ -69,29 +69,22 @@ local function group(frame, pieces)
 	}
 end
 
--- The window frame with its title strip.
-local function window(frame)
-	local border = newBorder(frame)
-	NineSliceUtil.ApplyLayoutByName(border, T.window.layout)
-	local pieces = ground(frame, border, 21)
-	table.insert(pieces, 1, border)
-	local w = group(frame, pieces)
-	w.border = border
-	-- Forever crops the bottom corners of short frames so they cannot overlap the top ones.
-	function w:Crop()
-		if type(NineSliceUtil.UpdateCornerCropping) == 'function' then
-			pcall(NineSliceUtil.UpdateCornerCropping, { NineSlice = border, layoutType = T.window.layout },
-				frame:GetHeight() + BORDER.top - BORDER.bottom)
-		end
-	end
-	return w
-end
+--[[ Blizzard's frame, cut to the panel
+ButtonFrameTemplateNoPortrait is made for tall windows: its top corners hold
+the title strip and are taller than a panel with one row of buttons, and
+Forever then crops the bottom corners away (seen in the game on 15 November
+2026: no bottom, sides running past the panel). So the frame is put together
+here from the layout's own pieces, as Soundstone cuts it for its compact
+bar: the top pieces keep their rows from 5 units above the box's top down to
+`below` units under it; the bottom corners keep their lowest units up to 8
+above the box's bottom; edges run between them. With the title strip,
+`below` is 26.4, where the strip's separator has ended and the flat ground
+begins (Soundstone's measurement); without it, 3, the metal band alone.
+--]]
+F.STRIP = 26.4
+F.BAND = 3
 
--- The same frame without its title strip: Blizzard's pieces cut to their
--- metal band. The top pieces keep 8 units from 5 above the box's top to 3
--- below it; the bottom corners their lowest units up to 8 above the box's
--- bottom; the sides run between them.
-local function band(frame, layout)
+local function cut(frame, layout, below)
 	local border = newBorder(frame)
 	local function piece(key, from, to, tile)
 		local p = layout[key]
@@ -112,14 +105,15 @@ local function band(frame, layout)
 		return t, p, info
 	end
 	local top = layout.TopLeftCorner.y or 0
-	local tl, tlp, tli = piece('TopLeftCorner', top - 5, top + 3)
-	tl:SetSize(tli.width, 8)
+	local height = 5 + below
+	local tl, tlp, tli = piece('TopLeftCorner', top - 5, top + below)
+	tl:SetSize(tli.width, height)
 	tl:SetPoint('TOPLEFT', border, 'TOPLEFT', tlp.x or 0, 5)
-	local tr, trp, tri = piece('TopRightCorner', top - 5, top + 3)
-	tr:SetSize(tri.width, 8)
+	local tr, trp, tri = piece('TopRightCorner', top - 5, top + below)
+	tr:SetSize(tri.width, height)
 	tr:SetPoint('TOPRIGHT', border, 'TOPRIGHT', trp.x or 0, 5)
-	local te = piece('TopEdge', top - 5, top + 3, 'h')
-	te:SetHeight(8)
+	local te = piece('TopEdge', top - 5, top + below, 'h')
+	te:SetHeight(height)
 	te:SetPoint('TOPLEFT', tl, 'TOPRIGHT')
 	te:SetPoint('TOPRIGHT', tr, 'TOPLEFT')
 	local function bottomCorner(key, point)
@@ -147,11 +141,15 @@ local function band(frame, layout)
 	re:SetWidth(rei.width)
 	re:SetPoint('TOPRIGHT', tr, 'BOTTOMRIGHT')
 	re:SetPoint('BOTTOMRIGHT', br, 'TOPRIGHT')
-	local pieces = ground(frame, border, 2)
+	border.pieces = {
+		topLeft = tl, topRight = tr, top = te, bottomLeft = bl, bottomRight = br, bottom = be, left = le, right = re,
+	}
+	-- The window's ground starts under the strip; under the band, just below it.
+	local pieces = ground(frame, border, below > 10 and 21 or 2)
 	table.insert(pieces, 1, border)
-	local b = group(frame, pieces)
-	b.border = border
-	return b
+	local g = group(frame, pieces)
+	g.border = border
+	return g
 end
 
 -- The flat look: a plate and one-pixel lines on a frame of their own above the content.
@@ -178,8 +176,9 @@ function F.BuildPanel(bundle, frame, L)
 	local parts = { art = art }
 
 	if art.window then
-		surfaces.strip = window(frame)
-		surfaces.band = band(frame, T.WindowLayout())
+		local layout = T.WindowLayout()
+		surfaces.strip = cut(frame, layout, F.STRIP)
+		surfaces.band = cut(frame, layout, F.BAND)
 	else
 		surfaces.flat = flat(frame)
 	end
@@ -260,9 +259,6 @@ function F.BuildPanel(bundle, frame, L)
 		if surfaces.strip then
 			surfaces.strip:SetShown(headerShown)
 			surfaces.band:SetShown(not headerShown)
-			if headerShown then
-				surfaces.strip:Crop()
-			end
 		end
 		if parts.centred then
 			-- Title and count together centred under the strip's middle.

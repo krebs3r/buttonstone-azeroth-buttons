@@ -292,11 +292,20 @@ if skin ~= 'forever' then
 elseif expect.art then
 	local surfaces = ns.Bundle.surfaces
 	equal(regionsUsing(panel, 'Panel'), 0, 'no sprite frame on Forever')
-	equal(surfaces.strip.border._nineSlice, 'ButtonFrameTemplateNoPortrait', "Blizzard's window frame")
+	local strip, stripBand = surfaces.strip.border.pieces, surfaces.band.border.pieces
+	local layout = NineSliceLayouts.ButtonFrameTemplateNoPortrait
+	equal(strip.topLeft:GetAtlas(), layout.TopLeftCorner.atlas, "cut from Blizzard's own pieces")
+	near(strip.topLeft:GetHeight(), 5 + ns.Forever.STRIP, 'top pieces keep the title strip')
+	near(strip.top:GetHeight(), 5 + ns.Forever.STRIP, 'top edge keeps the title strip')
+	equal(strip.bottomLeft:GetHeight(), 8 - layout.BottomLeftCorner.y, 'bottom corners keep their lowest 8 units')
+	equal((strip.left:GetPoint(1)), 'TOPLEFT', 'left edge starts under the top corner')
+	equal(select(2, strip.left:GetPoint(1)), strip.topLeft, 'left edge hangs from the top corner')
+	equal(select(2, strip.left:GetPoint(2)), strip.bottomLeft, 'and ends on the bottom corner')
+	equal(Mock.cropped, nil, "Blizzard's corner cropping is not needed")
+	check(panel:GetHeight() > ns.Forever.STRIP + 8, 'even one row leaves room for strip and bottom')
+	near(stripBand.topLeft:GetHeight(), 5 + ns.Forever.BAND, 'the band keeps 8 units')
 	check(surfaces.strip.border:GetFrameLevel() > panel:GetFrameLevel() + 5, 'the frame lies above the content')
 	check(surfaces.strip.border:IsShown() and not surfaces.band.border:IsShown(), 'with the header: the frame with its strip')
-	equal(Mock.cropped.container.NineSlice, surfaces.strip.border, 'bottom corners cropped for this height')
-	near(Mock.cropped.height, panel:GetHeight() - 3.35 - 0.35, 'cropped for the border box')
 	equal(regionsUsing(panel, 'UI-Background-Rock'), 2, 'rock ground under strip and band')
 	equal(ns.Bundle.gear._template, 'UIPanelButtonTemplate', "the gear as Forever's red header button")
 	equal(ns.Bundle.gear.symbol:GetTexture(), ns.Theme.GEAR, 'with the client gear')
