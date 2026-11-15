@@ -1,0 +1,16 @@
+## Interface: 20506
+## Title: Buttonstone - Azeroth Buttons
+## Notes: Gathers the minimap buttons of your other addons into one button and panel.
+## Notes-deDE: Sammelt die Minimap-Buttons deiner anderen Addons in einem Button und Panel.
+## Author: krebs3r
+## Version: @project-version@
+## SavedVariables: ButtonstoneDB
+## IconTexture: Interface\AddOns\Buttonstone\Media\Logo
+## X-Website: https://github.com/krebs3r/buttonstone-azeroth-buttons
+## X-License: MIT
+## Category-enUS: Minimap
+## Category-deDE: Minimap
+
+Locale.lua
+Compat.lua
+Core.lua

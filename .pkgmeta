@@ -1,0 +1,10 @@
+package-as: Buttonstone
+
+ignore:
+  - .github
+  - docs
+  - assets
+  - tools
+  - tests
+  - requirements-dev.txt
+  - .luacheckrc

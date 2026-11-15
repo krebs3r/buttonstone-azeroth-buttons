@@ -21,6 +21,18 @@ Buttonstone gathers the minimap buttons of your other addons into one button on 
 
 Retail (Midnight), Mists of Pandaria Classic, TBC Classic Anniversary, Classic Era and WoW: Forever, from one package.
 
+## Development
+
+```bash
+python -m venv .venv
+.venv/Scripts/python -m pip install -r requirements-dev.txt
+.venv/Scripts/python tests/run.py
+.venv/Scripts/python -m unittest discover -s tests -p "test_*.py"
+luacheck .
+```
+
+`tests/run.py` loads the addon's files in Lua 5.1 against a small WoW stand-in, once for each client; it does not replace a look in the game. `tools/install.ps1` copies the checkout into every installed client's AddOns folder as `Buttonstone` (pass `-WowPath` once).
+
 ## License
 
 MIT, see [LICENSE](LICENSE). Blizzard names and game art belong to their owners; the project is independent and unofficial.
