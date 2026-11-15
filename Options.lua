@@ -28,7 +28,6 @@ local DIRECTIONS = { 'auto', 'down-left', 'down-right', 'up-left', 'up-right' }
 local ART = {
 	field = 'common-dropdown-textholder',
 	arrow = 'common-dropdown-a-button',
-	list = 'common-dropdown-bg',
 }
 
 local function forever()
@@ -133,7 +132,56 @@ local function stepper(parent, x, y, width, low, high, step, format, onChange)
 	return field
 end
 
+-- Blizzard's own dropdown, field and menu, as Soundstone's device list wears
+-- it on Forever. The menu draws Forever's list with its bronze line, which the
+-- background atlas alone does not (seen in the game on 15 November 2026).
+local function hasMenu()
+	return forever() and type(Menu) == 'table' and type(Menu.GetManager) == 'function'
+		and type(DropdownButtonMixin) == 'table' and type(WowStyle1DropdownMixin) == 'table'
+end
+
+local function nativeDropdown(parent, x, y, width, choices, onSelect)
+	local field = CreateFrame('DropdownButton', nil, parent, 'WowStyle1DropdownTemplate')
+	field:SetSize(width, 22)
+	field:SetPoint('TOPLEFT', parent, 'TOPLEFT', x, -y)
+	field.native = true
+	local function textOf(value)
+		for _, choice in ipairs(choices) do
+			if choice.value == value then
+				return choice.text
+			end
+		end
+		return ''
+	end
+	field:SetupMenu(function(_, root)
+		if root.SetMinimumWidth then
+			root:SetMinimumWidth(width)
+		end
+		for _, choice in ipairs(choices) do
+			root:CreateRadio(choice.text, function(value)
+				return field.value == value
+			end, function(value)
+				onSelect(value)
+				return MenuResponse and MenuResponse.Close or nil
+			end, choice.value)
+		end
+	end)
+	function field:SetValue(value)
+		self.value = value
+		if self.GenerateMenu then
+			self:GenerateMenu()
+		end
+		if self.OverrideText then
+			self:OverrideText(textOf(value))
+		end
+	end
+	return field
+end
+
 local function dropdown(parent, x, y, width, choices, onSelect)
+	if hasMenu() then
+		return nativeDropdown(parent, x, y, width, choices, onSelect)
+	end
 	local skin = T.Skin()
 	local field = CreateFrame('Button', nil, parent)
 	field:SetSize(width, 22)
@@ -164,13 +212,8 @@ local function dropdown(parent, x, y, width, choices, onSelect)
 	popup:EnableMouse(true)
 	popup:SetPoint('TOPLEFT', field, 'BOTTOMLEFT', 0, -2)
 	popup:SetSize(width, #choices * 18 + 10)
-	if skin == 'forever' and T.HasAtlas(ART.list) then
-		local bg = popup:CreateTexture(nil, 'BACKGROUND')
-		bg:SetAtlas(ART.list)
-		bg:SetPoint('TOPLEFT', popup, 'TOPLEFT', -10, 3)
-		bg:SetPoint('BOTTOMRIGHT', popup, 'BOTTOMRIGHT', 10, -3)
-		bg:SetAlpha(0.925)
-	elseif skin == 'forever' then
+	if skin == 'forever' then
+		-- Without Blizzard's menu: the flat plate with Forever's one-pixel bronze line.
 		local fill = popup:CreateTexture(nil, 'BACKGROUND')
 		fill:SetTexture(T.WHITE)
 		fill:SetAllPoints(popup)

@@ -141,20 +141,39 @@ click(c.size.plus)
 equal(ns.db.panel.size, 110, 'and up to the step above')
 click(c.size.minus)
 
-click(c.direction)
-check(c.direction.popup:IsShown(), 'the direction list opens')
-click(c.direction.rows[5])
-equal(ns.db.panel.direction, 'up-right', 'direction chosen')
-check(not c.direction.popup:IsShown(), 'list closed after a choice')
-equal(c.direction.label:GetText(), L['DIR_up-right'], 'choice shown')
-equal((panel:GetPoint(1)), 'BOTTOMLEFT', 'panel anchored the new way')
-click(c.direction)
-Mock.hover = nil
-Mock.run(c.direction.popup, 'OnEvent', 'GLOBAL_MOUSE_DOWN')
-check(not c.direction.popup:IsShown(), 'a click elsewhere closes the list')
-click(c.direction)
-click(c.direction.rows[1])
-equal(ns.db.panel.direction, 'auto', 'back to automatic')
+if skin == 'forever' and expect.art then
+	-- Forever: Blizzard's own dropdown and menu.
+	local field = c.direction
+	equal(field._template, 'WowStyle1DropdownTemplate', "Blizzard's dropdown on Forever")
+	equal(field._override, L.DIR_auto, 'the setting shown')
+	local radios = field._menu.radios
+	equal(#radios, 5, 'five directions in the menu')
+	equal(radios[5].text, L['DIR_up-right'], 'localised')
+	check(radios[1].isSelected(radios[1].data) and not radios[5].isSelected(radios[5].data), 'the current one marked')
+	equal(radios[5].setSelected(radios[5].data), MenuResponse.Close, 'choosing closes the menu')
+	equal(ns.db.panel.direction, 'up-right', 'direction chosen')
+	equal(field._override, L['DIR_up-right'], 'choice shown')
+	check(field._menu.radios[5].isSelected('up-right'), 'and marked')
+	equal((panel:GetPoint(1)), 'BOTTOMLEFT', 'panel anchored the new way')
+	field._menu.radios[1].setSelected('auto')
+	equal(ns.db.panel.direction, 'auto', 'back to automatic')
+else
+	equal(c.direction.native, nil, 'own list where Blizzard\'s menu is not used')
+	click(c.direction)
+	check(c.direction.popup:IsShown(), 'the direction list opens')
+	click(c.direction.rows[5])
+	equal(ns.db.panel.direction, 'up-right', 'direction chosen')
+	check(not c.direction.popup:IsShown(), 'list closed after a choice')
+	equal(c.direction.label:GetText(), L['DIR_up-right'], 'choice shown')
+	equal((panel:GetPoint(1)), 'BOTTOMLEFT', 'panel anchored the new way')
+	click(c.direction)
+	Mock.hover = nil
+	Mock.run(c.direction.popup, 'OnEvent', 'GLOBAL_MOUSE_DOWN')
+	check(not c.direction.popup:IsShown(), 'a click elsewhere closes the list')
+	click(c.direction)
+	click(c.direction.rows[1])
+	equal(ns.db.panel.direction, 'auto', 'back to automatic')
+end
 
 local coin = LibDBIcon10_Coinkeeper
 click(c.uniform)

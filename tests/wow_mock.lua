@@ -784,6 +784,31 @@ NORMAL_FONT_COLOR = {
 	end,
 }
 
+-- Blizzard's dropdown button (WowStyle1DropdownTemplate) and its menu: the
+-- generator is run into a root that records each radio.
+function Frame:SetupMenu(generator)
+	self._generator = generator
+	self:GenerateMenu()
+end
+
+function Frame:GenerateMenu()
+	local root = { radios = {} }
+	function root:CreateRadio(label, isSelected, setSelected, data)
+		local radio = { text = label, isSelected = isSelected, setSelected = setSelected, data = data }
+		table.insert(self.radios, radio)
+		return radio
+	end
+	function root:SetMinimumWidth(width)
+		self.minimumWidth = width
+	end
+	self._generator(self, root)
+	self._menu = root
+end
+
+function Frame:OverrideText(label)
+	self._override = label
+end
+
 --[[ The client's art: atlases, nine-slice layouts and NineSliceUtil, as the
 Mainline UI has them. tests/run.py installs it for every client but the run
 that checks Forever's fallback, which gets none of it.
@@ -830,6 +855,11 @@ function Mock.InstallArt()
 			RightEdge = { atlas = '!UI-Frame-Metal-EdgeRight' },
 		},
 	}
+	-- The Mainline UI's menu system.
+	Menu = { GetManager = function() return {} end }
+	DropdownButtonMixin = {}
+	WowStyle1DropdownMixin = {}
+	MenuResponse = { Close = 2 }
 	NineSliceUtil = {
 		ApplyLayoutByName = function(frame, name)
 			frame._nineSlice = name
