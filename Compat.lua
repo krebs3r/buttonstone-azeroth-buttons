@@ -68,6 +68,10 @@ function C.Version()
 	return version
 end
 
+function C.Now()
+	return type(GetTime) == 'function' and GetTime() or 0
+end
+
 function C.InCombat()
 	return type(InCombatLockdown) == 'function' and InCombatLockdown() == true
 end

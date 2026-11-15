@@ -13,4 +13,9 @@
 
 Locale.lua
 Compat.lua
+Assets.lua
+Theme.lua
+Collector.lua
+Bundle.lua
+Launcher.lua
 Core.lua

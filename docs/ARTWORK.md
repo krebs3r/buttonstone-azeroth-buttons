@@ -41,6 +41,17 @@ recessed face and a bright upper edge. The four buttons touch each other and rea
 - `docs/curseforge/logo-400.png`: the CurseForge project logo.
 - `docs/design/assets/Logo.png`: the mockup's copy.
 
+## Sprites in Media/
+
+The panel and slot sprites are not new art. They are copied byte for byte from the family, by the same author and MIT licensed:
+
+| Files | Source |
+| --- | --- |
+| `RetailPanel.tga`, `ClassicPanel.tga`, `ActionNormal.tga`, `ActionHover.tga`, `ActionPressed.tga` | Soundstone's `Soundstone/Media/`, commit `ecb4109` |
+| `Gear.tga` | Hourstone's `Hourstone/Media/`, commit `5a020bc` |
+
+`Assets.lua` records the sub-rectangle each sprite fills, as `Soundstone/Assets.lua` does. The main button's disc, border and highlight are Blizzard's tracking-button textures (file IDs 136467, 136430 and 136477), referenced from the client and not redistributed.
+
 ## Making new candidates
 
 The brief: the family's stone, painted in the same style, plus Buttonstone's own gold element. The background is transparent, with no text, frame or plate and about 8 % padding. The silhouette has to read at 18 × 18 pixels, and the gold stays restrained and softly bevelled. Two compositions are in the script (`PROMPTS`): `grid` (the chosen one) and `orbit` (four small round buttons around the stone, as on a minimap's rim).
