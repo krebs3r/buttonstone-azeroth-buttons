@@ -16,8 +16,8 @@ local base = {
 	TIP_DRAG = 'Drag: move',
 
 	SEC_MAIN = 'Main button',
-	KEEP = 'Keep on the minimap',
-	KEEP_HINT = 'Off: drag it anywhere on the screen',
+	KEEP = 'Attach to the minimap',
+	KEEP_HINT = 'Off: place it anywhere on the screen',
 	COMPARTMENT = 'Entry in the Addons menu',
 	COMPARTMENT_HINT = 'Takes effect after /reload',
 	SEC_PANEL = 'Panel',
@@ -73,8 +73,8 @@ local locales = {
 		TIP_DRAG = 'Ziehen: verschieben',
 
 		SEC_MAIN = 'Hauptbutton',
-		KEEP = 'An der Minimap halten',
-		KEEP_HINT = 'Aus: frei auf dem Bildschirm verschiebbar',
+		KEEP = 'An der Minimap befestigen',
+		KEEP_HINT = 'Aus: frei auf dem Bildschirm platzierbar',
 		COMPARTMENT = 'Eintrag im Addon-Menü',
 		COMPARTMENT_HINT = 'Wirkt nach /reload',
 		COLUMNS = 'Spalten',
