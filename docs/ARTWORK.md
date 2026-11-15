@@ -47,8 +47,8 @@ The panel and slot sprites are not new art. They are copied byte for byte from t
 
 | Files | Source |
 | --- | --- |
-| `RetailPanel.tga`, `ClassicPanel.tga`, `ActionNormal.tga`, `ActionHover.tga`, `ActionPressed.tga` | Soundstone's `Soundstone/Media/`, commit `ecb4109` |
-| `Gear.tga` | Hourstone's `Hourstone/Media/`, commit `5a020bc` |
+| `RetailPanel.tga`, `ClassicPanel.tga`, `ActionNormal.tga`, `ActionHover.tga`, `ActionPressed.tga`, `HeaderClose.tga`, `Rivet.tga`, `Toggle.tga`, `ToggleRed.tga`, `GoldThumb.tga`, `SilverThumb.tga` | Soundstone's `Soundstone/Media/`, commit `ecb4109` |
+| `Gear.tga`, `ControlRetail.tga`, `ControlClassic.tga`, `Arrow.tga`, `Heart.tga` | Hourstone's `Hourstone/Media/`, commit `5a020bc` |
 
 `Assets.lua` records the sub-rectangle each sprite fills, as `Soundstone/Assets.lua` does. The main button's disc, border and highlight are Blizzard's tracking-button textures (file IDs 136467, 136430 and 136477), referenced from the client and not redistributed.
 

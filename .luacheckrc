@@ -35,4 +35,5 @@ read_globals = {
 
 	-- WoW: Forever's art
 	'NineSliceUtil', 'NineSliceLayouts', 'C_Texture', 'NORMAL_FONT_COLOR', 'PixelUtil',
+	'DropdownButtonMixin', 'WowStyle1DropdownMixin', 'MenuResponse',
 }

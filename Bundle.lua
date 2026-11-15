@@ -68,6 +68,8 @@ local function findIcon(button)
 	return best, highlight
 end
 
+Bundle.FindIcon = findIcon
+
 local function style(record)
 	local button = record.button
 	local icon, highlight = findIcon(button)

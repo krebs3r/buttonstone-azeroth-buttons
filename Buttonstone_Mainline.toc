@@ -19,4 +19,5 @@ Forever.lua
 Collector.lua
 Bundle.lua
 Launcher.lua
+Options.lua
 Core.lua

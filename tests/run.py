@@ -13,7 +13,7 @@ from lupa.lua51 import LuaRuntime
 ROOT = Path(__file__).resolve().parents[1]
 # Each list runs in a Lua state of its own. The second has MinimapButtonButton loaded.
 RUNS = [
-    (["test_core.lua", "test_collector.lua"], False),
+    (["test_core.lua", "test_collector.lua", "test_options.lua"], False),
     (["test_rival.lua"], True),
 ]
 

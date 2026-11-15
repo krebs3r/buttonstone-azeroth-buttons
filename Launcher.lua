@@ -32,7 +32,8 @@ function Launcher.RimOffset(angle)
 	return math.max(-w, math.min(x * dw, w)), math.max(-h, math.min(y * dh, h))
 end
 
-local function showTooltip(button)
+-- The main button's tooltip; the Addons menu entry shows it without the drag line.
+local function showTooltip(button, fromMenu)
 	if button.dragging or not GameTooltip then
 		return
 	end
@@ -40,9 +41,13 @@ local function showTooltip(button)
 	GameTooltip:SetOwner(button, 'ANCHOR_LEFT')
 	GameTooltip:SetText(L.TITLE, 1, 1, 1)
 	GameTooltip:AddLine(L.TIP_CLICK, muted[1], muted[2], muted[3])
-	GameTooltip:AddLine(L.TIP_DRAG, muted[1], muted[2], muted[3])
+	GameTooltip:AddLine(L.TIP_RIGHT, muted[1], muted[2], muted[3])
+	if fromMenu ~= true then
+		GameTooltip:AddLine(L.TIP_DRAG, muted[1], muted[2], muted[3])
+	end
 	GameTooltip:Show()
 end
+Launcher.ShowTooltip = showTooltip
 
 local function hideTooltip()
 	if GameTooltip then

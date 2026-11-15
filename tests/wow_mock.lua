@@ -590,6 +590,99 @@ function Frame:GetHighlightTexture()
 	return self._highlight
 end
 
+-- Check buttons and sliders.
+function Frame:SetChecked(value)
+	self._checked = value and true or false
+end
+
+function Frame:GetChecked()
+	return self._checked == true
+end
+
+function Frame:SetOrientation(value)
+	self._orientation = value
+end
+
+function Frame:SetMinMaxValues(low, high)
+	self._min, self._max = low, high
+end
+
+function Frame:GetMinMaxValues()
+	return self._min, self._max
+end
+
+function Frame:SetValueStep(step)
+	self._step = step
+end
+
+function Frame:SetObeyStepOnDrag(value)
+	self._obey = value
+end
+
+-- The client fires OnValueChanged when the value changes.
+function Frame:SetValue(value)
+	value = math.max(self._min or value, math.min(self._max or value, value))
+	if value ~= self._value then
+		self._value = value
+		Mock.run(self, 'OnValueChanged', value, false)
+	end
+end
+
+function Frame:GetValue()
+	return self._value
+end
+
+function Frame:SetThumbTexture(texture)
+	self._thumb = texture
+end
+
+function Frame:GetThumbTexture()
+	return self._thumb
+end
+
+function Frame:EnableMouseWheel(value)
+	self._wheel = value
+end
+
+function Frame:SetNormalAtlas(atlas)
+	self._normalAtlas = atlas
+end
+
+function Frame:SetPushedAtlas(atlas)
+	self._pushedAtlas = atlas
+end
+
+function Frame:SetHighlightAtlas(atlas)
+	self._highlightAtlas = atlas
+end
+
+function Frame:SetEnabled(value)
+	self._disabled = not value
+end
+
+function Frame:Enable()
+	self._disabled = false
+end
+
+function Frame:Disable()
+	self._disabled = true
+end
+
+function Frame:IsEnabled()
+	return not self._disabled
+end
+
+-- A click as the client delivers it: a check button flips first, a disabled button does nothing.
+function Mock.click(button, mouse)
+	if button._disabled then
+		return
+	end
+	if button._type == 'CheckButton' then
+		button._checked = not button._checked
+	end
+	Mock.run(button, 'OnClick', mouse or 'LeftButton')
+end
+
 -- UIPanelButtonTemplate's label.
 function Frame:SetText(text)
 	self._text = text
@@ -691,6 +784,31 @@ NORMAL_FONT_COLOR = {
 	end,
 }
 
+-- Blizzard's dropdown button (WowStyle1DropdownTemplate) and its menu: the
+-- generator is run into a root that records each radio.
+function Frame:SetupMenu(generator)
+	self._generator = generator
+	self:GenerateMenu()
+end
+
+function Frame:GenerateMenu()
+	local root = { radios = {} }
+	function root:CreateRadio(label, isSelected, setSelected, data)
+		local radio = { text = label, isSelected = isSelected, setSelected = setSelected, data = data }
+		table.insert(self.radios, radio)
+		return radio
+	end
+	function root:SetMinimumWidth(width)
+		self.minimumWidth = width
+	end
+	self._generator(self, root)
+	self._menu = root
+end
+
+function Frame:OverrideText(label)
+	self._override = label
+end
+
 --[[ The client's art: atlases, nine-slice layouts and NineSliceUtil, as the
 Mainline UI has them. tests/run.py installs it for every client but the run
 that checks Forever's fallback, which gets none of it.
@@ -709,6 +827,16 @@ function Mock.InstallArt()
 		['UI-HUD-ActionBar-IconFrame'] = { width = 46, height = 45 },
 		['UI-HUD-ActionBar-IconFrame-Down'] = { width = 46, height = 45 },
 		['UI-HUD-ActionBar-IconFrame-Mouseover'] = { width = 46, height = 45 },
+		['RedButton-Exit'] = { width = 28, height = 28 },
+		['RedButton-exit-pressed'] = { width = 28, height = 28 },
+		['RedButton-Highlight'] = { width = 28, height = 28 },
+		['Minimal_SliderBar_Left'] = { width = 11, height = 11 },
+		['_Minimal_SliderBar_Middle'] = { width = 32, height = 11, tilesHorizontally = true },
+		['Minimal_SliderBar_Right'] = { width = 11, height = 11 },
+		['Minimal_SliderBar_Button'] = { width = 20, height = 19 },
+		['common-dropdown-textholder'] = { width = 128, height = 38 },
+		['common-dropdown-a-button'] = { width = 27, height = 26 },
+		['common-dropdown-bg'] = { width = 128, height = 64 },
 	}
 	C_Texture = {
 		GetAtlasInfo = function(name)
@@ -727,6 +855,11 @@ function Mock.InstallArt()
 			RightEdge = { atlas = '!UI-Frame-Metal-EdgeRight' },
 		},
 	}
+	-- The Mainline UI's menu system.
+	Menu = { GetManager = function() return {} end }
+	DropdownButtonMixin = {}
+	WowStyle1DropdownMixin = {}
+	MenuResponse = { Close = 2 }
 	NineSliceUtil = {
 		ApplyLayoutByName = function(frame, name)
 			frame._nineSlice = name

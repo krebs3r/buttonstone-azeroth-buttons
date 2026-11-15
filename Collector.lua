@@ -93,6 +93,8 @@ local function labelFor(button, name, libName)
 	return stripped ~= '' and stripped or name
 end
 
+Collector.Label = labelFor
+
 --[[ Which minimap children count as buttons
 Named, made by an addon (Blizzard's frames are secure variables), not a map
 pin (pins are numbered or named after their addon), not protected, roughly
@@ -288,6 +290,41 @@ function Collector:Release(record)
 		end
 	end
 	ns.Bundle:Layout()
+end
+
+-- Everything the options list: the gathered buttons and the excluded names,
+-- with the button where one exists this session, sorted by label.
+function Collector:Entries()
+	local entries, seen = {}, {}
+	for _, record in ipairs(self.records) do
+		seen[record.name] = true
+		entries[#entries + 1] = {
+			name = record.name, label = record.label, source = record.source, button = record.button, included = true,
+		}
+	end
+	for name in pairs(ns.db.excluded) do
+		if not seen[name] then
+			local button = _G[name]
+			local libName = name:match('^LibDBIcon10_(.+)$')
+			local entry = { name = name, included = false, source = libName and 'lib' or 'own' }
+			if type(button) == 'table' and type(button.GetObjectType) == 'function' then
+				entry.button = button
+				entry.label = labelFor(button, name, libName)
+			else
+				entry.label = libName or labelFor({}, name)
+				entry.missing = true
+			end
+			entries[#entries + 1] = entry
+		end
+	end
+	table.sort(entries, function(a, b)
+		local la, lb = a.label:lower(), b.label:lower()
+		if la == lb then
+			return a.name < b.name
+		end
+		return la < lb
+	end)
+	return entries
 end
 
 function Collector:Find(name)

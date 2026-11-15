@@ -270,6 +270,41 @@ function F.BuildPanel(bundle, frame, L)
 	return parts
 end
 
+--[[ A window on Forever: the frame with its title strip, or the flat plate.
+Returns the surface and the box the title and close button align to. ]]
+function F.Window(frame)
+	local art = T.Art()
+	if art.window then
+		local surface = cut(frame, T.WindowLayout(), F.STRIP)
+		return surface, surface.border, true
+	end
+	return flat(frame), frame, false
+end
+
+-- Forever's close button: Blizzard's art and place (28 x 28 at the border's
+-- top right, 0, 3) with Buttonstone's own action; flat, a muted cross.
+function F.CloseButton(parent, border, framed, onClick)
+	local close = CreateFrame('Button', nil, parent)
+	local art = { normal = 'RedButton-Exit', pushed = 'RedButton-exit-pressed', highlight = 'RedButton-Highlight' }
+	if framed and T.HasAtlas(art.normal) and T.HasAtlas(art.pushed) and T.HasAtlas(art.highlight) then
+		close:SetSize(28, 28)
+		close:SetPoint('TOPRIGHT', border, 'TOPRIGHT', 0, 3)
+		close:SetNormalAtlas(art.normal)
+		close:SetPushedAtlas(art.pushed)
+		close:SetHighlightAtlas(art.highlight, 'ADD')
+	else
+		close:SetSize(18, 18)
+		close:SetPoint('TOPRIGHT', border, 'TOPRIGHT', -6, -5)
+		local cross = close:CreateFontString(nil, 'ARTWORK', 'GameFontNormal')
+		cross:SetPoint('CENTER', close, 'CENTER', 0, 0)
+		cross:SetText('×')
+		T.Color(cross, 'muted', 'SetTextColor')
+		close.cross = cross
+	end
+	close:SetScript('OnClick', onClick)
+	return close
+end
+
 --[[ Slots on Forever ]]
 function F.Slot(slot, art)
 	if art.slot then
