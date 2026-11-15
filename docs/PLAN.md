@@ -56,7 +56,7 @@ Open: Forever's minimap was reskinned in 1.60.1.70425 with Retail-style atlases.
 
 1. Local folder, `git init`, this plan. **Done.**
 2. **Mockup** (`docs/design/mockup.html`): one interactive page from the real Soundstone and Hourstone sprites, all three looks, four scenes (minimap and main button, open panel, detached main button, options window). **Approved on 15 November 2026.** From now on the mockup is the reference: every first in-game state is put next to it as a screenshot. Alongside: the logo brief and generator (`docs/ARTWORK.md`).
-3. GitHub repository, scaffold: five TOCs (`_Mainline`, `_Mists`, `_TBC`, `_Vanilla`, `_Camelot`, as in Umbra), `Compat.lua`, luacheck, Lua tests with a WoW mock, CI, `tools/install.ps1`.
+3. GitHub repository, scaffold: five TOCs (`_Mainline`, `_Mists`, `_TBC`, `_Vanilla`, `_Camelot`, as in Umbra), `Compat.lua`, luacheck, Lua tests with a WoW mock, CI, `tools/install.ps1`. **Built on 15 November 2026:** the repository is public, the scaffold loads the settings and answers `/bst version` and `/bst help`; the TOCs name no CurseForge or Wago project until those exist. **Checked in the game the same day**, build `dev-ad619ef` installed with `tools/install.ps1`, German clients: it loads on all five; `/bst version` reports `Retail` on Retail, `Classic` on Mists of Pandaria Classic, TBC Anniversary and Classic Era, and `WoW: Forever` on Forever, where `/bst` also printed the German help.
 4. Collector, main button and panel on Retail; in-game screenshot against the mockup.
 5. Classic and Forever looks, each compared with the mockup.
 6. Options window and locales.
