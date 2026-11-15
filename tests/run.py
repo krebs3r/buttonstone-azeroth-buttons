@@ -13,14 +13,16 @@ from lupa.lua51 import LuaRuntime
 ROOT = Path(__file__).resolve().parents[1]
 TESTS = ["test_core.lua", "test_collector.lua"]
 
-# name, WOW_PROJECT_ID, defines WOW_PROJECT_CAMELOT, interface, locale, has the Addons menu, look
+# name, WOW_PROJECT_ID, defines WOW_PROJECT_CAMELOT, interface, locale, has the Addons menu, look, client art
 CLIENTS = [
-    ("Retail", 1, False, 120105, "deDE", True, "retail"),
-    ("Mists of Pandaria Classic", 19, False, 50504, "enUS", False, "classic"),
-    ("TBC Anniversary", 5, False, 20506, "deDE", False, "classic"),
-    ("Classic Era", 2, False, 11509, "enUS", False, "classic"),
-    ("WoW: Forever", 18, True, 16001, "deDE", True, "forever"),
-    ("WoW: Forever beta", 1, False, 16001, "enUS", True, "forever"),
+    ("Retail", 1, False, 120105, "deDE", True, "retail", True),
+    ("Mists of Pandaria Classic", 19, False, 50504, "enUS", False, "classic", True),
+    ("TBC Anniversary", 5, False, 20506, "deDE", False, "classic", True),
+    ("Classic Era", 2, False, 11509, "enUS", False, "classic", True),
+    ("WoW: Forever", 18, True, 16001, "deDE", True, "forever", True),
+    ("WoW: Forever beta", 1, False, 16001, "enUS", True, "forever", True),
+    # Forever's own pieces missing: each falls back to the flat look.
+    ("WoW: Forever without its art", 18, True, 16001, "deDE", True, "forever", False),
 ]
 
 
@@ -29,7 +31,7 @@ def toc_files():
     return [line.strip() for line in text.splitlines() if line.strip() and not line.startswith("#")]
 
 
-def run_client(name, project, camelot, interface, locale, compartment, look):
+def run_client(name, project, camelot, interface, locale, compartment, look, art):
     lua = LuaRuntime(unpack_returned_tuples=True)
     lua.execute((ROOT / "tests" / "wow_mock.lua").read_text(encoding="utf-8"))
     g = lua.globals()
@@ -40,7 +42,9 @@ def run_client(name, project, camelot, interface, locale, compartment, look):
     g.Mock.locale = locale
     if not compartment:
         g.AddonCompartmentFrame = None
-    g.Mock.expect = lua.table_from({"look": look, "locale": locale, "compartment": compartment})
+    if art:
+        g.Mock.InstallArt()
+    g.Mock.expect = lua.table_from({"look": look, "locale": locale, "compartment": compartment, "art": art})
 
     load = lua.eval(
         "function(code, chunk, ns) local f, e = loadstring(code, chunk); assert(f, e); return f('Buttonstone', ns) end"

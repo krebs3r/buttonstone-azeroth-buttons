@@ -32,4 +32,7 @@ read_globals = {
 	-- Frames
 	'CreateFrame', 'UIParent', 'AddonCompartmentFrame', 'GameTooltip', 'UISpecialFrames', 'Menu',
 	'Minimap', 'MinimapBackdrop', 'GetMinimapShape',
+
+	-- WoW: Forever's art
+	'NineSliceUtil', 'NineSliceLayouts', 'C_Texture', 'NORMAL_FONT_COLOR', 'PixelUtil',
 }

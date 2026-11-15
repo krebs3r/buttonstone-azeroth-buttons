@@ -7,6 +7,8 @@ local expect = Mock.expect
 local retail = expect.look == 'retail'
 -- LibDBIcon picks its sizes by project ID, so the Forever beta gets Retail's.
 local libIcon = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE and 18 or 17
+local skin = ns.Theme.Skin()
+local ICON = ns.Theme.IconSize()
 local m = ns.Theme.Metrics()
 local passed = 0
 
@@ -185,7 +187,7 @@ equal(fader.showOnMouseover, false, 'LibDBIcon fading off while gathered')
 equal(fader:GetAlpha(), 1, 'faded button visible')
 
 --[[ The uniform look ]]
-equal(bag.icon:GetWidth(), 24, 'icon at slot size')
+equal(bag.icon:GetWidth(), ICON, 'icon at slot size')
 equal((bag.icon:GetPoint(1)), 'CENTER', 'icon centred')
 equal(bag:GetWidth(), 32, 'button at slot size')
 for _, region in ipairs(texturesOf(bag, bag.icon)) do
@@ -193,14 +195,21 @@ for _, region in ipairs(texturesOf(bag, bag.icon)) do
 end
 equal(hourIcon:GetNumMaskTextures(), 0, 'round mask taken off')
 equal(hourBorder:GetAlpha(), 0, 'own border hidden')
-equal(umbraIcon:GetWidth(), 24, 'icon found without a field')
+equal(umbraIcon:GetWidth(), ICON, 'icon found without a field')
 equal(umbraGround:GetAlpha(), 0, 'disc found by its path')
 equal(umbraBorder:GetAlpha(), 0, 'border found by its path')
 equal(umbra:GetHighlightTexture():GetAlpha(), 0, 'round highlight hidden')
-if retail then
-	check(gathered.LibDBIcon10_Bagsmith.slot.plate:GetTexture():find('ActionNormal', 1, true), 'Retail plate')
+local bagSlotNow = gathered.LibDBIcon10_Bagsmith.slot
+if skin == 'retail' then
+	check(bagSlotNow.plate:GetTexture():find('ActionNormal', 1, true), 'Retail plate')
+elseif skin == 'classic' then
+	equal(#bagSlotNow.visual, 9, 'Classic plate is a nine-slice')
+elseif expect.art then
+	equal(bagSlotNow.frameArt.normal:GetAtlas(), 'UI-HUD-ActionBar-IconFrame', "Forever's icon frame")
+	check(bagSlotNow.visual[1]:GetFrameLevel() > bag:GetFrameLevel(), 'icon frame above the button')
+	check(not bagSlotNow.frameArt.pushed:IsShown() and not bagSlotNow.frameArt.highlight:IsShown(), 'icon frame at rest')
 else
-	equal(#gathered.LibDBIcon10_Bagsmith.slot.visual, 9, 'Classic plate is a nine-slice')
+	equal(#bagSlotNow.wellLines, 4, 'flat well with a one-pixel outline')
 end
 
 --[[ Layout ]]
@@ -215,7 +224,15 @@ for i, record in ipairs(ns.Bundle.shown) do
 end
 equal(table.concat(order, ', '), 'Backdropper, Bagsmith, Coinkeeper, Fader, Hourstone - Azeroth Hours, Umbra Unit Frames, WIM', 'sorted by name')
 local width, height = size()
-local headerWidth = 2 * (m.padX - 1) + 18 + 5 + #ns.L.PANEL_TITLE * 6 + 5 + #ns.Bundle.count:GetText() * 6 + 8 + 15
+local titleWidth, countWidth = #ns.L.PANEL_TITLE * 6, #ns.Bundle.count:GetText() * 6
+local headerWidth
+if skin ~= 'forever' then
+	headerWidth = 2 * (m.padX - 1) + 18 + 5 + titleWidth + 5 + countWidth + 8 + 15
+elseif expect.art then
+	headerWidth = 2 * (8 + 32 + 6) + titleWidth + 4 + countWidth
+else
+	headerWidth = 2 * (m.padX - 1) + 18 + 5 + titleWidth + 4 + countWidth + 8 + 15
+end
 equal(ns.Bundle:HeaderWidth(), headerWidth, 'header needs logo, title, count and gear side by side')
 equal(width, math.max(4 * 32 + 3 * 4 + 2 * m.padX, m.minWidth, headerWidth), 'width for four columns and the header')
 equal(height, m.padTopHeader + 2 * 32 + 4 + m.padBottom, 'height for two rows')
@@ -249,7 +266,7 @@ ns.db.panel.header = false
 ns.Bundle:Layout()
 equal(#ns.Bundle.shown, 9, 'nine shown')
 equal(select(2, size()), m.padTop + 3 * 32 + 2 * 4 + m.padBottom, 'no header, less height')
-check(not ns.Bundle.header:IsShown() and not ns.Bundle.rule:IsShown(), 'header hidden')
+check(not ns.Bundle.header:IsShown() and not (ns.Bundle.rule and ns.Bundle.rule:IsShown()), 'header hidden')
 ns.db.panel.header = true
 ns.db.panel.columns = 8
 ns.Bundle:Layout()
@@ -257,6 +274,55 @@ equal(select(2, size()), m.padTopHeader + 2 * 32 + 4 + m.padBottom, 'two rows wi
 equal(size(), math.max(8 * 32 + 7 * 4 + 2 * m.padX, ns.Bundle:HeaderWidth()), 'eight columns wide')
 ns.db.panel.columns = 4
 ns.Bundle:Layout()
+
+--[[ The surface ]]
+local function regionsUsing(frame, name)
+	local found = 0
+	for _, region in ipairs({ frame:GetRegions() }) do
+		local texture = region.GetTexture and region:GetTexture()
+		if type(texture) == 'string' and texture:find(name, 1, true) then
+			found = found + 1
+		end
+	end
+	return found
+end
+if skin ~= 'forever' then
+	equal(ns.Bundle.surfaces, nil, 'no Forever surfaces elsewhere')
+	equal(regionsUsing(panel, skin == 'retail' and 'RetailPanel' or 'ClassicPanel'), 9, 'the sprite frame')
+elseif expect.art then
+	local surfaces = ns.Bundle.surfaces
+	equal(regionsUsing(panel, 'Panel'), 0, 'no sprite frame on Forever')
+	equal(surfaces.strip.border._nineSlice, 'ButtonFrameTemplateNoPortrait', "Blizzard's window frame")
+	check(surfaces.strip.border:GetFrameLevel() > panel:GetFrameLevel() + 5, 'the frame lies above the content')
+	check(surfaces.strip.border:IsShown() and not surfaces.band.border:IsShown(), 'with the header: the frame with its strip')
+	equal(Mock.cropped.container.NineSlice, surfaces.strip.border, 'bottom corners cropped for this height')
+	near(Mock.cropped.height, panel:GetHeight() - 3.35 - 0.35, 'cropped for the border box')
+	equal(regionsUsing(panel, 'UI-Background-Rock'), 2, 'rock ground under strip and band')
+	equal(ns.Bundle.gear._template, 'UIPanelButtonTemplate', "the gear as Forever's red header button")
+	equal(ns.Bundle.gear.symbol:GetTexture(), ns.Theme.GEAR, 'with the client gear')
+	equal(ns.Theme.GEAR, 'Interface\\WorldMap\\GEAR_64GREY', 'the client gear is GEAR_64GREY')
+	local point, relative = ns.Bundle.title:GetPoint(1)
+	equal(point, 'TOP', 'title in the strip')
+	equal(relative, surfaces.strip.border, 'title on the frame')
+	equal(ns.Bundle.rule, nil, "the frame's separator takes the rule's place")
+	ns.db.panel.header = false
+	ns.Bundle:Layout()
+	check(surfaces.band.border:IsShown() and not surfaces.strip.border:IsShown(), 'without the header: the band')
+	local bandPieces = 0
+	for _, region in ipairs({ surfaces.band.border:GetRegions() }) do
+		if region:GetAtlas() then
+			bandPieces = bandPieces + 1
+		end
+	end
+	equal(bandPieces, 8, 'the band is cut from the eight pieces of the frame')
+	ns.db.panel.header = true
+	ns.Bundle:Layout()
+else
+	local surfaces = ns.Bundle.surfaces
+	check(surfaces.flat and not surfaces.strip, 'no art: the flat plate')
+	check(ns.Bundle.rule and ns.Bundle.rule:IsShown(), 'flat look has a rule')
+	equal(ns.Bundle.gear._template, nil, 'flat gear')
+end
 
 --[[ Giving back ]]
 local hourRecord = gathered.HourstoneMinimapButton
@@ -296,7 +362,7 @@ equal(fader:GetAlpha(), 0, 'alpha back')
 ns.Collector:SetExcluded('HourstoneMinimapButton', false)
 check(not ns.db.excluded.HourstoneMinimapButton, 'exclusion removed')
 check(ns.Collector.byButton[hour], 'taken again')
-equal(hourIcon:GetWidth(), 24, 'uniform again')
+equal(hourIcon:GetWidth(), ICON, 'uniform again')
 
 ns.db.panel.uniform = false
 ns.Bundle:Refresh()
@@ -308,22 +374,35 @@ end
 check(not gathered.LibDBIcon10_Coinkeeper.slot.visual[1]:IsShown(), 'original look: no plate')
 ns.db.panel.uniform = true
 ns.Bundle:Refresh()
-equal(coin.icon:GetWidth(), 24, 'uniform again')
+equal(coin.icon:GetWidth(), ICON, 'uniform again')
 check(gathered.LibDBIcon10_Coinkeeper.slot.visual[1]:IsShown(), 'plate again')
 
 -- Hover and press on the plate.
 local coinSlot = gathered.LibDBIcon10_Coinkeeper.slot
 Mock.run(coin, 'OnEnter')
-if retail then
+if skin == 'retail' then
 	check(coinSlot.plate:GetTexture():find('ActionHover', 1, true), 'hover plate')
 	Mock.run(coin, 'OnMouseDown')
 	check(coinSlot.plate:GetTexture():find('ActionPressed', 1, true), 'pressed plate')
 	Mock.run(coin, 'OnLeave')
 	check(coinSlot.plate:GetTexture():find('ActionNormal', 1, true), 'plate back')
-else
+elseif skin == 'classic' then
 	check(coinSlot.glow:IsShown(), 'hover glow')
 	Mock.run(coin, 'OnLeave')
 	check(not coinSlot.glow:IsShown(), 'glow off')
+elseif expect.art then
+	local art = coinSlot.frameArt
+	check(art.highlight:IsShown() and art.normal:IsShown(), "Forever's hover highlight")
+	Mock.run(coin, 'OnMouseDown')
+	check(art.pushed:IsShown() and not art.normal:IsShown(), "Forever's pressed frame")
+	Mock.run(coin, 'OnLeave')
+	check(art.normal:IsShown() and not art.pushed:IsShown() and not art.highlight:IsShown(), 'frame at rest again')
+else
+	local color = { coinSlot.wellLines[1]:GetVertexColor() }
+	near(color[1], 240 / 255, 'flat well lights up in the accent')
+	Mock.run(coin, 'OnLeave')
+	color = { coinSlot.wellLines[1]:GetVertexColor() }
+	near(color[1], 104 / 255, 'and goes back to bronze')
 end
 
 --[[ The main button ]]

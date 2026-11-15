@@ -52,6 +52,8 @@ The panel and slot sprites are not new art. They are copied byte for byte from t
 
 `Assets.lua` records the sub-rectangle each sprite fills, as `Soundstone/Assets.lua` does. The main button's disc, border and highlight are Blizzard's tracking-button textures (file IDs 136467, 136430 and 136477), referenced from the client and not redistributed.
 
+On WoW: Forever the panel wears the client's own art, referenced by name and drawn by the client, never redistributed here: the `ButtonFrameTemplateNoPortrait` nine-slice and its `UI-Frame-Metal-*` atlases, the ground `Interface\FrameGeneral\UI-Background-Rock` and `_UI-Frame-TopTileStreaks`, Blizzard's `UIPanelButtonTemplate` with the gear `Interface\WorldMap\GEAR_64GREY`, and the icon frames `UI-HUD-ActionBar-IconFrame`, `-Down` and `-Mouseover`. Where a piece is missing, its flat stand-in is drawn in code with `Interface\Buttons\WHITE8X8`.
+
 ## Making new candidates
 
 The brief: the family's stone, painted in the same style, plus Buttonstone's own gold element. The background is transparent, with no text, frame or plate and about 8 % padding. The silhouette has to read at 18 × 18 pixels, and the gold stays restrained and softly bevelled. Two compositions are in the script (`PROMPTS`): `grid` (the chosen one) and `orbit` (four small round buttons around the stone, as on a minimap's rim).

@@ -11,7 +11,7 @@ down and given back when the look is switched off or the button is released.
 local Bundle = { free = {} }
 ns.Bundle = Bundle
 
-local SLOT, GAP, ICON = T.SLOT, T.GAP, T.ICON
+local SLOT, GAP = T.SLOT, T.GAP
 
 --[[ The uniform look
 The round border, the dark disc behind the icon and the round highlight are
@@ -99,7 +99,7 @@ local function style(record)
 	end
 	icon:ClearAllPoints()
 	icon:SetPoint('CENTER', button, 'CENTER', 0, 0)
-	icon:SetSize(ICON, ICON)
+	icon:SetSize(T.IconSize(), T.IconSize())
 	button:SetSize(SLOT, SLOT)
 	record.style = saved
 	return true
@@ -131,7 +131,9 @@ local function newSlot(parent)
 	local slot = CreateFrame('Frame', nil, parent)
 	slot:SetSize(SLOT, SLOT)
 	slot.visual = {}
-	if T.Skin() == 'retail' then
+	if T.Skin() == 'forever' then
+		ns.Forever.Slot(slot, Bundle.art)
+	elseif T.Skin() == 'retail' then
 		local plate = slot:CreateTexture(nil, 'BACKGROUND')
 		plate:SetAllPoints(slot)
 		plate:SetTexture(T.Texture('ActionNormal'))
@@ -160,7 +162,9 @@ local function showVisual(slot, shown)
 end
 
 local function setState(slot, state)
-	if slot.plate then
+	if slot.frameArt or slot.wellLines then
+		ns.Forever.SlotState(slot, state)
+	elseif slot.plate then
 		local name = state == 'pressed' and 'ActionPressed' or state == 'hover' and 'ActionHover' or 'ActionNormal'
 		slot.plate:SetTexture(T.Texture(name))
 	elseif slot.glow then
@@ -251,6 +255,9 @@ function Bundle:Layout()
 		width = math.max(width, self:HeaderWidth())
 	end
 	frame:SetSize(width, top + gridHeight + m.padBottom)
+	if self.decorate then
+		self.decorate(p.header)
+	end
 
 	local left = (width - gridWidth) / 2
 	for i, record in ipairs(shown) do
@@ -260,7 +267,9 @@ function Bundle:Layout()
 	end
 
 	self.header:SetShown(p.header)
-	self.rule:SetShown(p.header)
+	if self.rule then
+		self.rule:SetShown(p.header)
+	end
 	self.empty:SetShown(count == 0)
 	self.empty:ClearAllPoints()
 	self.empty:SetPoint('CENTER', frame, 'TOPLEFT', width / 2, -(top + gridHeight / 2))
@@ -269,6 +278,9 @@ end
 -- Room for logo, title, count and gear side by side: the client's font can be
 -- wider than the mockup's, and German counts are longer.
 function Bundle:HeaderWidth()
+	if self.headerWidth then
+		return self.headerWidth()
+	end
 	local m = T.Metrics()
 	return 2 * (m.padX - 1) + 18 + 5 + self.title:GetStringWidth() + 5 + self.count:GetStringWidth() + 8 + 15
 end
@@ -371,21 +383,9 @@ local function watch(frame, elapsed)
 	end
 end
 
-function Bundle:Init()
-	local m = T.Metrics()
-	local frame = CreateFrame('Frame', 'ButtonstonePanel', UIParent)
-	self.frame = frame
-	frame:Hide()
-	frame:SetFrameStrata('HIGH')
-	frame:SetToplevel(true)
-	frame:SetClampedToScreen(true)
-	frame:EnableMouse(true)
-	frame:SetScale(ns.db.panel.size / 100)
-	frame:SetSize(m.minWidth, m.padTopHeader + SLOT + m.padBottom)
+-- Retail's and Classic's surface and header: the sprite frame, logo, title, count, gear and rule.
+function Bundle:BuildSprite(frame, m)
 	T.NineSlice(frame, m.panel, m.corner, m.sourceCorner, 'BACKGROUND')
-	-- Escape closes it, as it closes Blizzard's windows.
-	table.insert(UISpecialFrames, 'ButtonstonePanel')
-
 	local header = CreateFrame('Frame', nil, frame)
 	header:SetPoint('TOPLEFT', frame, 'TOPLEFT', m.padX - 1, -(m.padX - 3))
 	header:SetPoint('TOPRIGHT', frame, 'TOPRIGHT', -(m.padX - 1), -(m.padX - 3))
@@ -427,6 +427,31 @@ function Bundle:Init()
 	rule:SetColorTexture(1, 1, 1, 1)
 	T.Color(rule, 'rule')
 	self.rule = rule
+end
+
+function Bundle:Init()
+	local m = T.Metrics()
+	local frame = CreateFrame('Frame', 'ButtonstonePanel', UIParent)
+	self.frame = frame
+	frame:Hide()
+	frame:SetFrameStrata('HIGH')
+	frame:SetToplevel(true)
+	frame:SetClampedToScreen(true)
+	frame:EnableMouse(true)
+	frame:SetScale(ns.db.panel.size / 100)
+	frame:SetSize(m.minWidth, m.padTopHeader + SLOT + m.padBottom)
+	-- Escape closes it, as it closes Blizzard's windows.
+	table.insert(UISpecialFrames, 'ButtonstonePanel')
+
+	if T.Skin() == 'forever' then
+		local parts = ns.Forever.BuildPanel(self, frame, L)
+		self.art, self.surfaces = parts.art, parts.surfaces
+		self.header, self.title, self.count = parts.header, parts.title, parts.count
+		self.gear, self.rule = parts.gear, parts.rule
+		self.decorate, self.headerWidth = parts.Decorate, parts.HeaderWidth
+	else
+		self:BuildSprite(frame, m)
+	end
 
 	local empty = frame:CreateFontString(nil, 'ARTWORK', 'GameFontNormalSmall')
 	empty:SetText(L.EMPTY)
