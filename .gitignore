@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv*/
+dist/
+.env
+.env.*
+*.log
+*.tmp
+WTF/
+SavedVariables/
+tools/.wowpath

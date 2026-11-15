@@ -1,0 +1,821 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buttonstone Mockup</title>
+<style>
+@font-face { font-family: "Gelasio"; src: url("fonts/Gelasio-Regular.ttf") format("truetype"); }
+
+/* ---------- Page chrome (not part of the addon) ---------- */
+:root {
+  --page: #121417; --card: #1a1d21; --line: #2d3137; --ink: #e9e5db; --ink2: #a8a398; --hi: #ffd77a;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--page); color: var(--ink); font: 14px/1.5 system-ui, "Segoe UI", sans-serif; }
+.page-head { max-width: 1280px; margin: 0 auto; padding: 24px 24px 10px; }
+.page-head h1 { font: 600 22px/1.25 system-ui, "Segoe UI", sans-serif; margin: 0 0 6px; }
+.page-head p { color: var(--ink2); margin: 0; max-width: 900px; }
+.bar { position: sticky; top: 0; z-index: 100; background: rgba(18, 20, 23, .95); border-bottom: 1px solid var(--line); }
+.bar-in { max-width: 1280px; margin: 0 auto; padding: 10px 24px; display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; }
+.ctl { display: flex; align-items: center; gap: 6px; }
+.ctl > span { color: var(--ink2); font-size: 12px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { background: transparent; color: var(--ink); border: 0; padding: 4px 9px; font: inherit; font-size: 13px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: #3b3221; color: var(--hi); }
+.seg button:focus-visible, select.pg:focus-visible { outline: 2px solid var(--hi); outline-offset: -2px; }
+select.pg { background: #1f2328; color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; font: inherit; font-size: 13px; }
+main { max-width: 1280px; margin: 0 auto; padding: 4px 24px 64px; }
+section.sc { margin: 30px 0; }
+section.sc h2 { font: 600 17px/1.3 system-ui, "Segoe UI", sans-serif; margin: 0 0 4px; }
+section.sc > p { color: var(--ink2); margin: 0 0 12px; max-width: 900px; }
+.looks { display: flex; flex-direction: column; gap: 20px; }
+.lookwrap { overflow-x: auto; padding-bottom: 4px; scrollbar-color: #3a3f46 #16181b; }
+@media (max-width: 1100px), (max-height: 700px) { .bar { position: static; } }
+.looklabel { font-size: 12px; color: var(--ink2); margin: 0 0 6px; }
+.looklabel b { color: var(--ink); font-weight: 600; }
+.note { border: 1px solid var(--line); background: var(--card); border-radius: 8px; padding: 12px 16px; color: var(--ink2); max-width: 900px; }
+.note b { color: var(--ink); }
+.note ol, .note ul { margin: 6px 0 0; padding-left: 20px; }
+.note li { margin: 5px 0; }
+
+/* ---------- Game screens ---------- */
+.screen {
+  position: relative; overflow: hidden; flex: none; border-radius: 3px;
+  font-family: "Gelasio", Georgia, serif; user-select: none; -webkit-user-select: none;
+  box-shadow: 0 0 0 1px #000, 0 6px 24px rgba(0, 0, 0, .45);
+  --text: #f5f0de; --title: #ffcf42; --muted: #a6a094; --rule: rgba(171, 163, 143, .55); --rowRule: rgba(140, 133, 115, .3);
+  color: var(--text);
+}
+.screen.forever { --text: #f0e9da; --title: #ffd200; --muted: #a6a094; --rule: rgba(166, 160, 148, .35); --rowRule: rgba(166, 160, 148, .18); }
+.screen.retail  { background: radial-gradient(90% 80% at 25% 15%, #2f5263 0%, #183039 45%, #0a1418 100%); }
+.screen.classic { background: radial-gradient(90% 80% at 25% 15%, #55602f 0%, #2b351b 48%, #11160b 100%); }
+.screen.forever { background: radial-gradient(90% 80% at 25% 15%, #7a5430 0%, #40291a 48%, #190f08 100%); }
+.screen > .world { position: absolute; inset: 0; opacity: .5; background-image: var(--noise); mix-blend-mode: overlay; pointer-events: none; }
+.chrome-label { position: absolute; font: 10px/1.2 system-ui, sans-serif; color: rgba(255, 255, 255, .6); text-align: center; pointer-events: none; }
+
+/* Minimap stand-in */
+.mm { position: absolute; }
+.mm .ring, .mm .map { position: absolute; border-radius: 50%; }
+.mm .ring { inset: 0; }
+.mm .map { background-image: var(--terrain); background-size: 100% 100%; overflow: hidden; }
+.mm.square .ring { border-radius: 3px; }
+.mm.square .map { border-radius: 1px; }
+.retail .mm .ring { background: linear-gradient(160deg, #f3d58e, #b08a3e 40%, #6e5220 75%, #caa65a); box-shadow: 0 0 0 1px #1b1206, 0 2px 8px rgba(0, 0, 0, .6); }
+.retail .mm .map { inset: 4px; box-shadow: inset 0 0 0 1px #000, inset 0 0 14px rgba(0, 0, 0, .55); }
+.classic .mm .ring { background: radial-gradient(circle at 35% 28%, #a29e93, #5d5a52 55%, #2c2a26); box-shadow: 0 0 0 1px #0b0a08, 0 2px 8px rgba(0, 0, 0, .6), inset 0 0 0 1px rgba(255, 255, 255, .12); }
+.classic .mm .map { inset: 9px; box-shadow: inset 0 0 0 1px #000, inset 0 0 14px rgba(0, 0, 0, .55); }
+.forever .mm .ring { background: linear-gradient(170deg, #c2a77f, #8f7553 40%, #5d4831 80%, #a3896a); box-shadow: 0 0 0 1px #0d0905, 0 2px 8px rgba(0, 0, 0, .6); }
+.forever .mm .map { inset: 5px; box-shadow: inset 0 0 0 1px #000, inset 0 0 14px rgba(0, 0, 0, .55); }
+.mm .player { position: absolute; left: 50%; top: 50%; width: 0; height: 0; margin: -6px 0 0 -4px; border-left: 4px solid transparent; border-right: 4px solid transparent; border-bottom: 11px solid #ffd200; transform: rotate(24deg); filter: drop-shadow(0 0 1px #000); }
+.zone { position: absolute; height: 15px; font-size: 10px; line-height: 14px; text-align: center; color: #ffd200; white-space: nowrap; text-shadow: 0 1px 1px #000; }
+.retail .zone { background: linear-gradient(#141a20, #07090b); border: 1px solid #7a5f2b; border-radius: 8px; }
+.classic .zone { background: #0b0b0a; border: 1px solid #6b6860; border-radius: 2px; }
+.forever .zone { background: linear-gradient(#2b1d12, #1a110a); border: 1px solid #8a6d48; border-radius: 2px; }
+.zone .clock { position: absolute; right: 6px; color: #e9e2cf; font-size: 9px; }
+
+/* Stand-ins for the rest of the screen */
+.actionbar { position: absolute; display: flex; gap: 3px; padding: 3px; background: rgba(0, 0, 0, .35); border-radius: 2px; }
+.actionbar i { display: block; width: 30px; height: 30px; background: linear-gradient(#262a2f, #121417); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14), 0 0 0 1px #000; border-radius: 2px; }
+.chatbox { position: absolute; background: rgba(0, 0, 0, .28); border-radius: 2px; padding: 6px 8px; font: 10px/1.5 system-ui, sans-serif; color: rgba(255, 255, 255, .45); }
+
+/* Main button: Blizzard's tracking-button geometry with Hourstone's preview sprites */
+.mb { position: absolute; width: 31px; height: 31px; cursor: grab; z-index: 20; touch-action: none; }
+.mb > img { position: absolute; pointer-events: none; }
+.mb .gr { left: 3.5px; top: 3.5px; width: 24px; height: 24px; }
+.mb .ic { left: 5.5px; top: 5px; width: 20px; height: 20px; object-fit: contain; }
+.classic .mb .gr { left: 5.5px; top: 5.5px; width: 20px; height: 20px; }
+.classic .mb .ic { left: 6px; top: 5.5px; width: 19px; height: 19px; }
+.mb .rg { left: 0; top: 0; width: 31px; height: 31px; }
+.mb .hl { left: 0; top: 0; width: 31px; height: 31px; opacity: 0; mix-blend-mode: screen; }
+.mb:hover .hl, .mb.hover .hl { opacity: 1; }
+.mb:active .ic, .mb.pressed .ic { transform: translate(.6px, .6px); filter: brightness(.75); }
+.mb.dragging { cursor: grabbing; }
+
+/* Panel */
+.bs-wrap { position: absolute; z-index: 30; }
+.bs-panel { position: relative; }
+.skin9 { position: absolute; inset: 0; }
+.retail .skin9 { border: 7px solid transparent; border-image: url("assets/RetailPanel.png") 16 fill / 7px stretch; }
+.classic .skin9 { border: 10px solid transparent; border-image: url("assets/ClassicPanel.png") 37 fill / 10px stretch; }
+.bs-panel .hdr { position: absolute; display: flex; align-items: center; gap: 5px; height: 20px; z-index: 2; }
+.hdr .lg { width: 18px; height: 18px; }
+.hdr .ttl { color: var(--title); font-size: 13px; white-space: nowrap; }
+.hdr .cnt { color: var(--muted); font-size: 10px; white-space: nowrap; margin-top: 2px; }
+.hdr .gear { margin-left: auto; width: 15px; height: 15px; cursor: pointer; opacity: .9; }
+.hdr .gear:hover { filter: brightness(1.35); opacity: 1; }
+.bs-panel .rule { position: absolute; height: 1px; background: var(--rule); z-index: 2; }
+.bs-panel .grid { position: absolute; display: grid; gap: 4px; z-index: 2; }
+.fvt { position: absolute; z-index: 3; color: var(--title); font-size: 11px; line-height: 16px; text-align: center; white-space: nowrap; text-shadow: 0 1px 1px #000; pointer-events: none; }
+.fvt .cnt { color: var(--muted); font-size: 9.5px; margin-left: 4px; }
+
+/* Forever's frame, drawn after Hourstone's FOREVER-THEME.md measurements (stand-in for the client's atlases) */
+.fv { position: absolute; inset: 0; z-index: 0; }
+.fv > i { position: absolute; display: block; }
+.fv .o { inset: 0; background: #0d0905; clip-path: polygon(5px 0, calc(100% - 5px) 0, 100% 5px, 100% calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%, 0 calc(100% - 5px), 0 5px); }
+.fv .m { inset: 1px; background: linear-gradient(180deg, #c0a47c 0%, #977b59 10%, #7d6547 50%, #5c4731 100%); clip-path: polygon(4px 0, calc(100% - 4px) 0, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 0 calc(100% - 4px), 0 4px); box-shadow: inset 0 1px 0 rgba(255, 238, 205, .5), inset 0 -1px 0 rgba(0, 0, 0, .35); }
+.fv .l { inset: 5px; background: #0c0805; clip-path: polygon(2px 0, calc(100% - 2px) 0, 100% 2px, 100% calc(100% - 2px), calc(100% - 2px) 100%, 2px 100%, 0 calc(100% - 2px), 0 2px); }
+.fv .g { inset: 6px; background-color: #34302a; background-image: var(--rock); box-shadow: inset 0 0 8px rgba(0, 0, 0, .6), inset 0 0 0 1px rgba(0, 0, 0, .5); }
+.fv .s { left: 6px; right: 6px; top: 6px; height: 16px; background: linear-gradient(#2c1e13, #1b120b); }
+.fv .p { left: 5px; right: 5px; top: 22px; height: 4px; background: linear-gradient(#b0956f, #6e573a); box-shadow: 0 1px 0 #0c0805, 0 -1px 0 #0c0805; }
+.fv .k { left: 6px; right: 6px; top: 27px; height: 43px; background: linear-gradient(rgba(255, 238, 205, .07), transparent); }
+.fvb { position: absolute; z-index: 4; border-radius: 2px; cursor: pointer; background: linear-gradient(#b82c1f, #7c150a 60%, #5a0d06); box-shadow: inset 0 0 0 1px #1a0603, inset 0 0 0 2px #c8984f, inset 0 0 0 3px #4a0e06, 0 1px 1px rgba(0, 0, 0, .6); }
+.fvb:hover { filter: brightness(1.18); }
+.fvb > * { position: absolute; inset: 0; margin: auto; }
+
+/* Slots */
+.slot { position: relative; width: 32px; height: 32px; cursor: pointer; }
+.slot > i { position: absolute; display: block; pointer-events: none; }
+.slot .ic { background-size: cover; background-position: center; }
+.slot .ic.logo { background-size: contain, cover; background-repeat: no-repeat; }
+.slot.u .bg { inset: 0; }
+.slot.u .ic { left: 4px; top: 4px; width: 24px; height: 24px; border-radius: 1px; }
+.retail .slot.u .bg { background: url("assets/ActionNormal.png") center / 100% 100%; }
+.retail .slot.u:hover .bg { background-image: url("assets/ActionHover.png"); }
+.retail .slot.u:active .bg { background-image: url("assets/ActionPressed.png"); }
+.classic .slot.u .bg { border: 4px solid transparent; border-image: url("assets/ClassicPanel.png") 37 fill / 4px stretch; }
+.classic .slot.u:hover .bg { filter: brightness(1.3); }
+.classic .slot.u:hover .ic { box-shadow: 0 0 0 1px rgba(255, 209, 0, .75); }
+.forever .slot.u .bg { background: #0d0b09; border-radius: 3px; box-shadow: inset 0 0 0 1px #000, inset 0 0 0 2px #5d554b, inset 0 0 0 3px #15110d; }
+.forever .slot.u .ic { left: 3px; top: 3px; width: 26px; height: 26px; border-radius: 2px; }
+.forever .slot.u:hover .bg { box-shadow: inset 0 0 0 1px #000, inset 0 0 0 2px #f0cc8c, inset 0 0 0 3px #15110d, 0 0 5px rgba(240, 204, 140, .55); }
+.slot.u:active .ic { transform: translate(.5px, .5px); filter: brightness(.75); }
+.slot.o .gr { left: 4px; top: 4px; width: 24px; height: 24px; border-radius: 50%; background: url("assets/MinimapBackground.png") center / 100% 100%; }
+.slot.o .ic { left: 7px; top: 7px; width: 18px; height: 18px; border-radius: 50%; }
+.slot.o .rg { left: .5px; top: .5px; width: 31px; height: 31px; background: url("assets/MinimapBorder.png") center / 100% 100%; }
+.slot.o .hl { left: .5px; top: .5px; width: 31px; height: 31px; background: url("assets/MinimapHover.png") center / 100% 100%; opacity: 0; mix-blend-mode: screen; }
+.slot.o:hover .hl { opacity: 1; }
+.slot.o.sq .gr, .slot.o.sq .rg, .slot.o.big .gr, .slot.o.big .rg { display: none; }
+.slot.o.sq .ic { left: 4px; top: 4px; width: 24px; height: 24px; border-radius: 2px; box-shadow: 0 0 0 2px #c9ccd1, 0 0 0 3px #000; }
+.slot.o.big .ic { left: 0; top: 0; width: 32px; height: 32px; box-shadow: 0 0 6px 1px rgba(170, 100, 255, .8); }
+.slot.o:active .ic { filter: brightness(.75); }
+.slot.rim { position: absolute; z-index: 15; }
+
+/* GameTooltip stand-in */
+.tt { position: absolute; z-index: 60; pointer-events: none; padding: 5px 8px 6px; font-size: 11px; line-height: 1.4; white-space: nowrap; }
+.retail .tt { background: rgba(6, 8, 12, .94); border: 1px solid #5c6470; border-radius: 3px; box-shadow: 0 0 0 1px #000; }
+.classic .tt { background: rgba(9, 10, 26, .92); border: 2px solid #9a9ea8; border-radius: 5px; }
+.forever .tt { background: rgba(10, 8, 6, .94); border: 1px solid #8a6d48; border-radius: 2px; box-shadow: 0 0 0 1px #000; }
+.tt .t { color: #fff; font-size: 12.5px; margin-bottom: 1px; }
+.tt .l { color: #d8d2c2; }
+.tt .m { color: #a6a094; }
+.tt .g { color: #4cc94c; }
+
+/* Options window */
+.opt { position: absolute; z-index: 25; }
+.opt .body { position: relative; z-index: 2; }
+.opt .hdr2 { position: absolute; z-index: 2; display: flex; align-items: center; gap: 6px; }
+.grip { display: grid; grid-template-columns: 4px 4px; gap: 3px 3px; margin-right: 2px; }
+.grip img { width: 4px; height: 4px; }
+.opt .hdr2 .lg { width: 20px; height: 20px; }
+.opt .hdr2 .ttl { color: var(--title); font-size: 14px; white-space: nowrap; }
+.opt .close { width: 20px; height: 20px; margin-left: auto; cursor: pointer; }
+.opt .close:hover { filter: brightness(1.2); }
+.opt .rule { height: 1px; background: var(--rule); margin: 0; }
+.sec { color: var(--title); font-size: 12px; margin: 9px 0 3px; }
+.row { display: flex; align-items: center; gap: 8px; min-height: 23px; font-size: 11.5px; }
+.row .lab { width: 64px; flex: none; color: var(--text); }
+.row .val { width: 36px; flex: none; text-align: right; color: var(--text); }
+.hint { color: var(--muted); font-size: 10px; margin: -2px 0 2px 21px; }
+.cb { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
+.cb .box { position: relative; width: 14px; height: 14px; flex: none; }
+.cb .box img { position: absolute; left: -2px; top: -3px; width: 18px; height: 18px; }
+.retail .cb .box { background: #0b0e12; box-shadow: 0 0 0 1px #c9a24a, inset 0 0 0 1px #000; }
+.classic .cb .box { background: #0c0c0b; box-shadow: 0 0 0 1px #9a958a, inset 0 0 0 1px #000; }
+.forever .cb .box { background: #110e09; box-shadow: 0 0 0 1px #92744c, inset 0 0 0 1px #000; }
+.cb:hover .box { filter: brightness(1.4); }
+.sl { position: relative; height: 18px; flex: 1; }
+.sl .tr { position: absolute; left: 0; right: 0; top: 6px; height: 6px; border-radius: 3px; background: #07090c; box-shadow: 0 0 0 1px #b08a3e, inset 0 1px 2px rgba(0, 0, 0, .8); }
+.classic .sl .tr { box-shadow: 0 0 0 1px #8f8b82, inset 0 1px 2px rgba(0, 0, 0, .8); }
+.forever .sl .tr { box-shadow: 0 0 0 1px #6a5232, inset 0 1px 2px rgba(0, 0, 0, .8); }
+.sl .fi { position: absolute; left: 1px; top: 7px; height: 4px; border-radius: 2px; background: linear-gradient(#ffcc4a, #d18f12); }
+.forever .sl .fi { background: linear-gradient(#ffb94a, #b5760f); }
+.sl .th { position: absolute; top: 0; width: 10px; height: 18px; margin-left: -5px; background: url("assets/GoldThumb.png") center / 100% 100%; pointer-events: none; }
+.classic .sl .th { background-image: url("assets/SilverThumb.png"); }
+.forever .sl .th { filter: sepia(.5) hue-rotate(-14deg) saturate(.9) brightness(.92); }
+.sl input { position: absolute; left: -5px; right: -5px; top: 0; bottom: 0; width: calc(100% + 10px); opacity: 0; cursor: pointer; margin: 0; }
+.dd { position: relative; height: 22px; flex: 1; }
+.dd select { appearance: none; -webkit-appearance: none; width: 100%; height: 22px; border: 0; padding: 0 22px 0 8px; font: inherit; font-size: 11px; color: var(--text); background: url("assets/ControlRetail.png") 0 0 / 100% 100%; cursor: pointer; outline: none; }
+.classic .dd select { background-image: url("assets/ControlClassic.png"); }
+.forever .dd select { background: #110e09; box-shadow: inset 0 0 0 1px #92744c, inset 0 0 0 2px #000, inset 0 0 0 3px #755b3a; }
+.dd select option { background: #111; color: #eee; }
+.dd .ar { position: absolute; right: 7px; top: 7px; width: 10px; height: 8px; pointer-events: none; background: url("assets/Arrow.png") center / contain no-repeat; }
+.forever .dd .ar { filter: sepia(1) saturate(5) hue-rotate(5deg) brightness(.95); }
+.list { height: 136px; overflow-y: auto; padding-right: 5px; }
+.list::-webkit-scrollbar { width: 6px; }
+.list::-webkit-scrollbar-track { background: rgba(0, 0, 0, .35); border-radius: 3px; }
+.retail .list::-webkit-scrollbar-thumb { background: #b08a3e; border-radius: 3px; }
+.classic .list::-webkit-scrollbar-thumb { background: #8f8b82; border-radius: 3px; }
+.forever .list::-webkit-scrollbar-thumb { background: #755b3a; border-radius: 3px; }
+.it { display: flex; align-items: center; gap: 7px; height: 22px; font-size: 11.5px; border-bottom: 1px solid var(--rowRule); }
+.it .ico { width: 16px; height: 16px; border-radius: 2px; flex: none; background-size: cover; background-position: center; }
+.it .ico.logo { background-size: contain, cover; background-repeat: no-repeat; }
+.it .src { margin-left: auto; color: var(--muted); font-size: 10px; }
+.it.off .nm { color: var(--muted); }
+.cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
+.btns { display: flex; gap: 8px; justify-content: center; margin-top: 10px; }
+.btn { height: 23px; min-width: 96px; padding: 0 10px; font: inherit; font-size: 11.5px; color: #ffd200; border: 4px solid transparent; border-image: url("assets/Toggle.png") 11 fill / 4px stretch; background: none; cursor: pointer; }
+.btn.red { border-image-source: url("assets/ToggleRed.png"); color: #fff0c2; }
+.btn:hover { filter: brightness(1.2); }
+.forever .btn { border: 0; border-image: none; background: linear-gradient(#a8241a, #6e1008); box-shadow: inset 0 0 0 1px #2a0a05, inset 0 0 0 2px #c79a55, inset 0 1px 0 rgba(255, 255, 255, .25); border-radius: 3px; color: #ffd200; }
+.foot { display: flex; justify-content: flex-end; align-items: center; gap: 4px; color: var(--muted); font-size: 10px; margin-top: 8px; }
+.foot img { width: 10px; height: 10px; }
+.flash { animation: flash 1.2s ease-out; }
+@keyframes flash { 0% { filter: brightness(1.8); } 100% { filter: none; } }
+</style>
+</head>
+<body>
+<header class="page-head">
+  <h1>Buttonstone – Azeroth Buttons · Mockup</h1>
+  <p>Eine Annäherung im Browser, kein Ingame-Screenshot. Alles ist bedienbar: Hauptbutton klicken oder am Rand entlangziehen, über Slots fahren, Optionen umschalten. Die Leiste oben gilt für alle Szenen.</p>
+</header>
+<div class="bar"><div class="bar-in" id="bar"></div></div>
+<main>
+  <section class="sc" id="s-minimap">
+    <h2>1 · Minimap und Hauptbutton</h2>
+    <p>Der Hauptbutton sitzt am Rand der Minimap und lässt sich daran entlangziehen, auch bei eckiger Minimap. Links siehst du die drei Zustände doppelt so groß. Blizzards Buttons und Buttons, die du in den Optionen ausschließt, bleiben an der Minimap.</p>
+    <div class="looks" data-scene="minimap"></div>
+  </section>
+  <section class="sc" id="s-panel">
+    <h2>2 · Offenes Panel</h2>
+    <p>Ein Klick auf den Hauptbutton öffnet und schließt das Panel, Escape schließt es auch. Fährst du über einen Slot, erscheint der Tooltip des jeweiligen Addons. Mit „Schließen: Maus weg“ geht das Panel kurz nach dem Verlassen zu. Mit „Slots: Original“ siehst du zum Vergleich, wie uneinheitlich die Buttons ohne Buttonstone aussehen.</p>
+    <div class="looks" data-scene="panel"></div>
+  </section>
+  <section class="sc" id="s-detached">
+    <h2>3 · Gelöster Hauptbutton</h2>
+    <p>Wenn „An der Minimap halten“ aus ist, kannst du den Button frei verschieben, zum Beispiel neben die Aktionsleisten. Bei „Richtung: Automatisch“ klappt das Panel in die Richtung mit dem meisten Platz auf.</p>
+    <div class="looks" data-scene="detached"></div>
+  </section>
+  <section class="sc" id="s-options">
+    <h2>4 · Optionsfenster</h2>
+    <p>Die Schalter hier funktionieren und ändern die Szenen oben mit. Schließt du einen Button aus, wandert er zurück an die Minimap. Schaltest du einen Blizzard-Button ein, landet er im Panel. Öffnen lässt sich das Fenster im Spiel per Rechtsklick auf den Hauptbutton, über das Zahnrad im Panel oder mit <code>/bst</code>.</p>
+    <div class="looks" data-scene="options"></div>
+  </section>
+  <section class="sc" id="s-decide">
+    <h2>Noch zu entscheiden</h2>
+    <div class="note">
+      <ol>
+        <li><b>Kopfzeile im Panel:</b> mit Logo, Titel, Anzahl und Zahnrad, oder ohne (kompakter)? Schalter „Kopfzeile“.</li>
+        <li><b>Standardwerte:</b> 4 Spalten, Richtung automatisch, Panelgröße 100 %. Passt das?</li>
+        <li><b>Slot-Größe:</b> 32 Einheiten wie Aktionsbuttons, oder etwas kleiner (z. B. 28), damit das Panel zierlicher wird?</li>
+        <li><b>Startposition des Hauptbuttons:</b> links unten am Minimap-Rand (wie hier)?</li>
+        <li><b>Forever:</b> Bekommt das kleine Panel den vollen Bronzerahmen mit Titelleiste wie Soundstones Mixer, oder ohne Kopfzeile nur das Metallband wie Soundstones kompakte Leiste?</li>
+        <li><b>Tooltip des Hauptbuttons:</b> Reichen die drei Zeilen (Klick, Rechtsklick, Ziehen)?</li>
+      </ol>
+    </div>
+  </section>
+  <section class="sc" id="s-limits">
+    <h2>Grenzen dieses Mockups</h2>
+    <div class="note">
+      <ul>
+        <li><b>Echte Sprites aus Soundstone und Hourstone:</b> Panels (Retail und Classic), Slots, Nieten, Häkchen, Regler, Auswahlfelder, Knöpfe, Schließen-Knopf sowie Hintergrund, Ring und Hover-Bild des Minimap-Buttons.</li>
+        <li><b>Nachgezeichnet:</b> die Minimap, Blizzards Buttons, die Tooltips und Forevers Rahmen. Den Rahmen habe ich nach den Maßen aus Hourstones FOREVER-THEME.md und dem Ingame-Screenshot gezeichnet. Im Spiel nutzt Buttonstone dort Blizzards eigene Grafik (<code>ButtonFrameTemplateNoPortrait</code>, rote Knöpfe, Icon-Rahmen der Aktionsleiste).</li>
+        <li><b>Schrift:</b> Gelasio statt der Spiel-Schrift Friz Quadrata, wie in Hourstones Vorschau. Im Spiel laufen Texte etwas anders.</li>
+        <li><b>Beispiel-Addons:</b> Hourstone, Soundstone und Umbra sind echt, alle anderen sind erfunden. „Tradepost“ und „Raidcall“ haben absichtlich eigene, abweichende Buttons.</li>
+        <li><b>Logo:</b> das gewählte Logo (Variante „grid“, siehe <code>docs/ARTWORK.md</code>).</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<script>
+"use strict";
+
+/* ---------- Helpers ---------- */
+const UNITLESS = new Set(["zoom", "opacity", "zIndex", "flex"]);
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k === "class") el.className = v;
+    else if (k === "style") for (const [p, val] of Object.entries(v)) el.style[p] = (typeof val === "number" && !UNITLESS.has(p)) ? val + "px" : val;
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else if (k === "html") el.innerHTML = v;
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat(Infinity)) {
+    if (kid == null || kid === false) continue;
+    el.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+  }
+  return el;
+}
+const svgData = s => "data:image/svg+xml," + encodeURIComponent(s);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+/* ---------- Generated textures ---------- */
+const NOISE = svgData(`<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220"><filter id="n" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="2" seed="3"/><feColorMatrix values="0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  0 0 0 .9 0"/></filter><rect width="220" height="220" filter="url(#n)"/></svg>`);
+const ROCK = svgData(`<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><filter id="r" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".045 .09" numOctaves="4" seed="11"/><feColorMatrix values="0 0 0 0 .21  0 0 0 0 .19  0 0 0 0 .16  1 0 0 0 -.25"/></filter><rect width="160" height="160" fill="#34302a"/><rect width="160" height="160" filter="url(#r)" opacity=".9"/></svg>`);
+const TERRAIN = svgData(`<svg xmlns="http://www.w3.org/2000/svg" width="280" height="280">
+<filter id="t" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".011" numOctaves="5" seed="7"/>
+<feColorMatrix values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1"/>
+<feComponentTransfer><feFuncR type="table" tableValues=".16 .24 .36 .50 .58"/><feFuncG type="table" tableValues=".26 .36 .42 .44 .46"/><feFuncB type="table" tableValues=".14 .18 .22 .26 .30"/></feComponentTransfer></filter>
+<rect width="280" height="280" filter="url(#t)"/>
+<ellipse cx="78" cy="74" rx="48" ry="30" fill="#2c5c78" opacity=".9"/>
+<path d="M-10 196 C60 172 92 124 152 134 S240 96 300 64" stroke="#a8946a" stroke-width="5" fill="none" opacity=".75"/>
+<path d="M188 300 C200 244 230 222 300 212" stroke="#a8946a" stroke-width="4" fill="none" opacity=".65"/>
+<circle cx="210" cy="176" r="4" fill="#ffd200"/><circle cx="96" cy="210" r="3" fill="#e8e8e8"/>
+</svg>`);
+document.documentElement.style.setProperty("--noise", `url("${NOISE}")`);
+document.documentElement.style.setProperty("--rock", `url("${ROCK}")`);
+document.documentElement.style.setProperty("--terrain", `url("${TERRAIN}")`);
+
+/* Placeholder addon icons: square art with a glyph, as WoW icons are. */
+function glyphIcon(kind, hue) {
+  const fg = 'fill="#f4e6c4" stroke="#2a1a08" stroke-width="2.5" stroke-linejoin="round"';
+  const G = {
+    bag: `<path ${fg} d="M25 13h14l-4 9c9 4 15 12 15 20 0 8-8 11-18 11s-18-3-18-11c0-8 6-16 15-20z"/><path fill="none" stroke="#2a1a08" stroke-width="2.5" d="M27 22h10"/>`,
+    coin: `<circle ${fg} cx="32" cy="32" r="19"/><circle fill="none" stroke="#2a1a08" stroke-width="2.5" cx="32" cy="32" r="12"/>`,
+    bars: `<rect ${fg} x="13" y="34" width="10" height="19"/><rect ${fg} x="27" y="22" width="10" height="31"/><rect ${fg} x="41" y="11" width="10" height="42"/>`,
+    peak: `<path ${fg} d="M7 51l16-27 8 12 9-18 17 33z"/>`,
+    bang: `<path ${fg} d="M26 9h12l-3 31h-6z"/><circle ${fg} cx="32" cy="50" r="5.5"/>`,
+    flag: `<rect ${fg} x="15" y="9" width="5" height="47"/><path ${fg} d="M20 11h29l-7 9 7 10H20z"/>`,
+    compass: `<circle ${fg} cx="32" cy="32" r="21"/><path fill="#b8322a" stroke="#2a1a08" stroke-width="2" d="M32 13l6 19H26z"/><path fill="#2a1a08" d="M32 51l-6-19h12z"/>`,
+    scales: `<rect ${fg} x="30" y="11" width="4" height="38"/><rect ${fg} x="12" y="18" width="40" height="4"/><path ${fg} d="M7 37l8-15 8 15z"/><path ${fg} d="M41 37l8-15 8 15z"/><rect ${fg} x="21" y="49" width="22" height="5"/>`,
+    bubble: `<path ${fg} d="M11 15h42v27H31l-11 11V42h-9z"/><circle fill="#2a1a08" cx="22" cy="28.5" r="3"/><circle fill="#2a1a08" cx="32" cy="28.5" r="3"/><circle fill="#2a1a08" cx="42" cy="28.5" r="3"/>`,
+    track: `<circle ${fg} cx="27" cy="27" r="14"/><path ${fg} d="M37 37l14 14-5 5-14-14z"/>`,
+    calendar: `<rect ${fg} x="11" y="15" width="42" height="38" rx="3"/><path fill="#b8322a" stroke="#2a1a08" stroke-width="2.5" d="M11 15h42v11H11z"/><text x="32" y="48" text-anchor="middle" font-size="18" font-family="Georgia" font-weight="bold" fill="#2a1a08">15</text>`,
+    mail: `<rect ${fg} x="9" y="17" width="46" height="31" rx="2"/><path fill="none" stroke="#2a1a08" stroke-width="2.5" d="M9 17l23 18 23-18"/>`,
+    eye: `<path ${fg} d="M5 32c8-12 17-18 27-18s19 6 27 18c-8 12-17 18-27 18S13 44 5 32z"/><circle fill="#2a1a08" cx="32" cy="32" r="8"/>`,
+  };
+  return svgData(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<defs><radialGradient id="g" cx="35%" cy="28%" r="85%"><stop offset="0" stop-color="hsl(${hue} 55% 48%)"/><stop offset=".6" stop-color="hsl(${hue} 60% 24%)"/><stop offset="1" stop-color="hsl(${hue} 65% 9%)"/></radialGradient>
+<linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
+<rect width="64" height="64" fill="url(#g)"/>${G[kind]}<rect width="64" height="64" fill="url(#s)"/>
+<rect x="1" y="1" width="62" height="62" fill="none" stroke="#000" stroke-opacity=".55" stroke-width="2"/></svg>`);
+}
+const LOGO_GROUND = "radial-gradient(circle at 50% 40%, #233340, #07090b)";
+function iconStyle(item) {
+  return item.img
+    ? { backgroundImage: `url("${item.img}"), ${LOGO_GROUND}` }
+    : { backgroundImage: `url("${glyphIcon(item.glyph, item.hue)}")` };
+}
+
+/* ---------- Strings (the addon's own texts, enUS and deDE) ---------- */
+const STR = {
+  de: {
+    title: "Buttonstone – Azeroth Buttons", panelTitle: "Buttonstone", zone: "Beispielzone",
+    count: n => `${n} Buttons`,
+    mainTip: ["Klick: Buttons zeigen", "Rechtsklick: Optionen", "Ziehen: verschieben"],
+    addonTip: ["Linksklick: Fenster öffnen", "Rechtsklick: Einstellungen"],
+    notGathered: "Nicht eingesammelt", blizzard: "Blizzard",
+    secMain: "Hauptbutton", keep: "An der Minimap halten", keepHint: "Aus: frei auf dem Bildschirm verschiebbar",
+    compartment: "Eintrag im Addon-Menü",
+    secPanel: "Panel", cols: "Spalten", dir: "Richtung", size: "Größe",
+    dirs: { auto: "Automatisch", "down-left": "Nach links unten", "down-right": "Nach rechts unten", "up-left": "Nach links oben", "up-right": "Nach rechts oben" },
+    uniform: "Einheitliche Slots", autoclose: "Schließen, wenn die Maus es verlässt",
+    secButtons: n => `Buttons (${n} gefunden)`, secBlizz: "Blizzard-Buttons einsammeln",
+    blizz: { track: "Verfolgung", calendar: "Kalender", mail: "Post", queue: "Warteschlange" },
+    src: { lib: "LibDBIcon", own: "Minimap" },
+    reset: "Position zurücksetzen", done: "Fertig",
+  },
+  en: {
+    title: "Buttonstone – Azeroth Buttons", panelTitle: "Buttonstone", zone: "Example Zone",
+    count: n => `${n} buttons`,
+    mainTip: ["Click: show buttons", "Right-click: options", "Drag: move"],
+    addonTip: ["Left-click: open window", "Right-click: settings"],
+    notGathered: "Not gathered", blizzard: "Blizzard",
+    secMain: "Main button", keep: "Keep on the minimap", keepHint: "Off: move it anywhere on the screen",
+    compartment: "Entry in the Addons menu",
+    secPanel: "Panel", cols: "Columns", dir: "Direction", size: "Size",
+    dirs: { auto: "Automatic", "down-left": "Down and left", "down-right": "Down and right", "up-left": "Up and left", "up-right": "Up and right" },
+    uniform: "Uniform slots", autoclose: "Close when the mouse leaves",
+    secButtons: n => `Buttons (${n} found)`, secBlizz: "Gather Blizzard buttons",
+    blizz: { track: "Tracking", calendar: "Calendar", mail: "Mail", queue: "Queue status" },
+    src: { lib: "LibDBIcon", own: "Minimap" },
+    reset: "Reset position", done: "Done",
+  },
+};
+const T = () => STR[S.lang];
+
+/* ---------- Sample data ---------- */
+const ADDONS = [
+  { id: "bagsmith", name: "Bagsmith", glyph: "bag", hue: 28, src: "lib" },
+  { id: "coinkeeper", name: "Coinkeeper", glyph: "coin", hue: 44, src: "lib" },
+  { id: "hourstone", name: "Hourstone – Azeroth Hours", img: "assets/IconHourstone.png", src: "own" },
+  { id: "meterwise", name: "Meterwise", glyph: "bars", hue: 2, src: "lib" },
+  { id: "mountboard", name: "Mountboard", glyph: "peak", hue: 188, src: "lib" },
+  { id: "questline", name: "Questline", glyph: "bang", hue: 48, src: "lib" },
+  { id: "raidcall", name: "Raidcall", glyph: "flag", hue: 276, src: "own", custom: "big" },
+  { id: "routeguide", name: "Routeguide", glyph: "compass", hue: 120, src: "lib" },
+  { id: "soundstone", name: "Soundstone – Azeroth Audio", img: "assets/IconSoundstone.png", src: "own" },
+  { id: "tradepost", name: "Tradepost", glyph: "scales", hue: 18, src: "own", custom: "sq" },
+  { id: "umbra", name: "Umbra Unit Frames", img: "assets/IconUmbra.png", src: "own" },
+  { id: "whisperbox", name: "Whisperbox", glyph: "bubble", hue: 212, src: "lib" },
+].sort((a, b) => a.name.localeCompare(b.name));
+const BLIZZ = [
+  { id: "track", glyph: "track", hue: 40, angle: 228 },
+  { id: "calendar", glyph: "calendar", hue: 30, angle: 318 },
+  { id: "mail", glyph: "mail", hue: 36, angle: 22 },
+  { id: "queue", glyph: "eye", hue: 200, angle: 62 },
+];
+const LOOKS = {
+  retail: { name: "Retail", detail: "Midnight 12.1.5" },
+  classic: { name: "Classic", detail: "MoP Classic, TBC Anniversary, Classic Era" },
+  forever: { name: "WoW: Forever", detail: "1.60.1, Annäherung an Forevers eigene Grafik" },
+};
+/* Panel metrics in UI units, per look: side padding, top without/with header, bottom, minimum width with header. */
+const PAD = {
+  retail: { x: 11, t: 11, th: 37, b: 11, minW: 168 },
+  classic: { x: 13, t: 13, th: 40, b: 13, minW: 172 },
+  forever: { x: 10, t: 10, th: 33, b: 10, minW: 160 },
+};
+const SLOT = 32, GAP = 4, BTN = 31;
+
+/* ---------- State ---------- */
+const S = {
+  look: "retail", compare: false, lang: "de", shape: "round",
+  cols: 4, dir: "auto", uniform: true, header: true, autoclose: true, size: 100, zoom: 1.5,
+  attached: true, compartment: true, angle: 145, free: null,
+  open: { panel: true, detached: true },
+  excluded: new Set(), blizz: new Set(), listScroll: 0,
+};
+const SCENES = {
+  minimap: { W: 430, H: 230 },
+  panel: { W: 600, H: 340 },
+  detached: { W: 600, H: 340 },
+  options: { W: 600, H: 610 },
+};
+const timers = {};
+
+/* ---------- Geometry ---------- */
+function minimapFor(scene) {
+  const W = SCENES[scene].W, size = 140;
+  const x = W - 32 - size, y = 36;
+  return { x, y, size, cx: x + size / 2, cy: y + size / 2 };
+}
+function rimPos(mm, angleDeg, size) {
+  const a = angleDeg * Math.PI / 180;
+  let dx = Math.cos(a), dy = Math.sin(a);
+  if (S.shape === "square") { const q = 1 / Math.max(Math.abs(dx), Math.abs(dy)); dx *= q; dy *= q; }
+  const R = mm.size / 2 + (S.shape === "square" ? 4 : 8);
+  return { x: mm.cx + dx * R - size / 2, y: mm.cy + dy * R - size / 2 };
+}
+function angleGap(a, b) { const d = Math.abs(((a - b) % 360 + 360) % 360); return Math.min(d, 360 - d); }
+/* Free rim angles (screen degrees, 0 = right, 90 = down), keeping clear of the zone bar on top. */
+function freeAngles(count, taken) {
+  const out = [];
+  for (let a = 180; out.length < count && a < 180 + 720; a += 13) {
+    const ang = a % 360;
+    if (ang > 236 && ang < 304) continue;
+    if ([...taken, ...out].every(t => angleGap(t, ang) >= 24)) out.push(ang);
+  }
+  return out;
+}
+function defaultFree(scene) { const { W, H } = SCENES[scene]; return { x: W - 168, y: H - 74 }; }
+function panelItems() {
+  const items = ADDONS.filter(a => !S.excluded.has(a.id)).map(a => ({ ...a, kind: "addon" }));
+  for (const b of BLIZZ) if (S.blizz.has(b.id)) items.push({ ...b, name: T().blizz[b.id], kind: "blizz" });
+  return items;
+}
+
+/* ---------- Tooltip ---------- */
+function screenOf(el) { return el.closest(".screen"); }
+function unitRect(el, screen) {
+  const r = el.getBoundingClientRect(), s = screen.getBoundingClientRect();
+  const k = s.width / Number(screen.dataset.w);
+  return { x: (r.left - s.left) / k, y: (r.top - s.top) / k, w: r.width / k, h: r.height / k, k };
+}
+function showTip(el, content) {
+  const screen = screenOf(el); if (!screen) return;
+  hideTip(screen);
+  const tip = h("div", { class: "tt" }, h("div", { class: "t" }, content.title), content.lines.map(l => h("div", { class: l.c || "l" }, l.t)));
+  screen.append(tip);
+  const r = unitRect(el, screen), t = unitRect(tip, screen), W = Number(screen.dataset.w), H = Number(screen.dataset.h);
+  let x = r.x - t.w - 4, y = r.y;
+  if (x < 4) x = r.x + r.w + 4;
+  tip.style.left = clamp(x, 4, W - t.w - 4) + "px";
+  tip.style.top = clamp(y, 4, H - t.h - 4) + "px";
+}
+function hideTip(screen) { screen.querySelectorAll(".tt").forEach(t => t.remove()); }
+function withTip(el, fn) {
+  el.addEventListener("pointerenter", () => { if (!document.body.classList.contains("dragging")) showTip(el, fn()); });
+  el.addEventListener("pointerleave", () => { const s = screenOf(el); if (s) hideTip(s); });
+  return el;
+}
+function addonTip(item) {
+  if (item.kind === "blizz") return { title: item.name, lines: [{ t: T().blizzard, c: "m" }] };
+  return { title: item.name, lines: T().addonTip.map(t => ({ t, c: "g" })) };
+}
+
+/* ---------- Auto-close ---------- */
+function keepOpen(el, scene) {
+  el.addEventListener("pointerenter", () => clearTimeout(timers[scene]));
+  el.addEventListener("pointerleave", () => {
+    if (!S.autoclose || !S.open[scene]) return;
+    clearTimeout(timers[scene]);
+    timers[scene] = setTimeout(() => { S.open[scene] = false; renderScene(scene); }, 700);
+  });
+  return el;
+}
+
+/* ---------- Building blocks ---------- */
+function minimapEl(scene) {
+  const mm = minimapFor(scene);
+  const zoneW = 128;
+  return [
+    h("div", { class: "zone", style: { left: mm.cx - zoneW / 2, top: mm.y - 22, width: zoneW } }, T().zone, S.look === "classic" ? null : h("span", { class: "clock" }, "")),
+    h("div", { class: "mm " + S.shape, style: { left: mm.x, top: mm.y, width: mm.size, height: mm.size } },
+      h("div", { class: "ring" }), h("div", { class: "map" }, h("div", { class: "player" }))),
+  ];
+}
+function slotEl(item, extraClass) {
+  const uniform = S.uniform;
+  const cls = "slot " + (uniform ? "u" : "o" + (item.custom ? " " + item.custom : "")) + (extraClass ? " " + extraClass : "");
+  const ic = h("i", { class: "ic" + (item.img ? " logo" : ""), style: iconStyle(item) });
+  const el = uniform
+    ? h("div", { class: cls }, h("i", { class: "bg" }), ic)
+    : h("div", { class: cls }, h("i", { class: "gr" }), ic, h("i", { class: "rg" }), h("i", { class: "hl" }));
+  el.addEventListener("click", () => { el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); });
+  return withTip(el, () => addonTip(item));
+}
+function rimSlot(item, pos, note) {
+  const saved = S.uniform; S.uniform = false;
+  const el = slotEl(item, "rim");
+  S.uniform = saved;
+  el.style.left = pos.x + "px"; el.style.top = pos.y + "px";
+  el.addEventListener("pointerenter", () => showTip(el, { title: item.name, lines: [{ t: note, c: "m" }] }));
+  return el;
+}
+function rimButtons(scene) {
+  const mm = minimapFor(scene), out = [];
+  const blizzLeft = BLIZZ.filter(b => !S.blizz.has(b.id));
+  for (const b of blizzLeft) out.push(rimSlot({ ...b, name: T().blizz[b.id] }, rimPos(mm, b.angle, SLOT), T().blizzard + " · " + T().notGathered));
+  const ex = ADDONS.filter(a => S.excluded.has(a.id));
+  const taken = [...blizzLeft.map(b => b.angle)];
+  if (S.attached || scene === "minimap") taken.push(S.angle);
+  const angles = freeAngles(ex.length, taken);
+  ex.forEach((a, i) => out.push(rimSlot({ ...a, kind: "addon" }, rimPos(mm, angles[i], SLOT), T().notGathered)));
+  return out;
+}
+function mainButton(scene, x, y, mode, extra) {
+  const b = h("div", { class: "mb" + (extra ? " " + extra : ""), style: { left: x, top: y } },
+    h("img", { class: "gr", src: "assets/MinimapBackground.png", alt: "" }),
+    h("img", { class: "ic", src: "assets/Logo.png", alt: "" }),
+    h("img", { class: "rg", src: "assets/MinimapBorder.png", alt: "" }),
+    h("img", { class: "hl", src: "assets/MinimapHover.png", alt: "" }));
+  if (mode) {
+    b.addEventListener("pointerdown", e => startDrag(e, scene, mode));
+    b.addEventListener("contextmenu", e => { e.preventDefault(); const o = document.getElementById("s-options"); o.scrollIntoView({ behavior: "smooth" }); });
+    withTip(b, () => ({ title: T().title, lines: T().mainTip.map(t => ({ t, c: "m" })) }));
+    keepOpen(b, scene);
+  }
+  return b;
+}
+function foreverFrame(withStrip) {
+  return h("div", { class: "fv" }, h("i", { class: "o" }), h("i", { class: "m" }), h("i", { class: "l" }), h("i", { class: "g" }),
+    withStrip ? [h("i", { class: "s" }), h("i", { class: "p" }), h("i", { class: "k" })] : null);
+}
+const GOLD_X = `<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 2l8 8M10 2l-8 8" stroke="#2a0a05" stroke-width="4" stroke-linecap="round"/><path d="M2 2l8 8M10 2l-8 8" stroke="#ffd200" stroke-width="2.2" stroke-linecap="round"/></svg>`;
+
+function panelEl(scene, btn, W, H) {
+  const look = S.look, P = PAD[look], items = panelItems();
+  const n = Math.max(1, items.length), cols = Math.min(S.cols, n), rows = Math.ceil(n / cols);
+  const gw = cols * SLOT + (cols - 1) * GAP, gh = rows * SLOT + (rows - 1) * GAP;
+  const top = S.header ? P.th : P.t;
+  const w = Math.max(gw + 2 * P.x, S.header ? P.minW : 0), hgt = top + gh + P.b;
+  const s = S.size / 100, W2 = w * s, H2 = hgt * s;
+  let dir = S.dir;
+  if (dir === "auto") {
+    const cx = btn.x + BTN / 2, cy = btn.y + BTN / 2;
+    dir = (cy < H / 2 ? "down" : "up") + "-" + (cx > W / 2 ? "left" : "right");
+  }
+  const left = clamp(dir.endsWith("left") ? btn.x + BTN - W2 : btn.x, 4, W - W2 - 4);
+  const topY = clamp(dir.startsWith("down") ? btn.y + BTN + 3 : btn.y - 3 - H2, 4, H - H2 - 4);
+
+  const kids = [];
+  if (look === "forever") {
+    kids.push(foreverFrame(S.header));
+    if (S.header) {
+      kids.push(h("div", { class: "fvt", style: { left: 30, right: 10, top: 6 } }, T().panelTitle, h("span", { class: "cnt" }, items.length)));
+      const gear = h("div", { class: "fvb", style: { left: 8, top: 5, width: 21, height: 17 } }, h("img", { src: "assets/Gear.png", alt: "", style: { width: 11, height: 11 } }));
+      gear.addEventListener("click", () => document.getElementById("s-options").scrollIntoView({ behavior: "smooth" }));
+      kids.push(gear);
+    }
+  } else {
+    kids.push(h("div", { class: "skin9" }));
+    if (S.header) {
+      const gear = h("img", { class: "gear", src: "assets/Gear.png", alt: "" });
+      gear.addEventListener("click", () => document.getElementById("s-options").scrollIntoView({ behavior: "smooth" }));
+      kids.push(h("div", { class: "hdr", style: { left: P.x - 1, right: P.x - 1, top: P.x - 3 } },
+        h("img", { class: "lg", src: "assets/Logo.png", alt: "" }),
+        h("span", { class: "ttl" }, T().panelTitle), h("span", { class: "cnt" }, T().count(items.length)), gear));
+      kids.push(h("div", { class: "rule", style: { left: P.x, right: P.x, top: P.th - 7 } }));
+    }
+  }
+  kids.push(h("div", { class: "grid", style: { left: (w - gw) / 2, top, gridTemplateColumns: `repeat(${cols}, ${SLOT}px)` } }, items.map(it => slotEl(it))));
+  const inner = h("div", { class: "bs-panel", style: { width: w, height: hgt, zoom: s } }, kids);
+  return keepOpen(h("div", { class: "bs-wrap", style: { left, top: topY, width: W2, height: H2 } }, inner), scene);
+}
+
+/* ---------- Options window ---------- */
+function checkbox(label, on, toggle) {
+  const el = h("label", { class: "cb" }, h("span", { class: "box" }, on ? h("img", { src: "assets/Check.png", alt: "" }) : null), h("span", {}, label));
+  el.addEventListener("click", e => { e.preventDefault(); toggle(); renderAll(); });
+  return el;
+}
+function slider(min, max, step, value, onInput) {
+  const pct = (value - min) / (max - min) * 100;
+  const input = h("input", { type: "range", min, max, step, value });
+  const fill = h("div", { class: "fi", style: { width: `calc(${pct}% - 2px)` } });
+  const thumb = h("div", { class: "th", style: { left: `${pct}%` } });
+  input.addEventListener("input", () => {
+    const v = Number(input.value), p = (v - min) / (max - min) * 100;
+    fill.style.width = `calc(${p}% - 2px)`; thumb.style.left = `${p}%`;
+    onInput(v); renderAll("options");
+  });
+  input.addEventListener("change", () => renderAll());
+  return h("div", { class: "sl" }, h("div", { class: "tr" }), fill, thumb, input);
+}
+function optionsEl(W) {
+  const look = S.look, t = T();
+  const w = 344, x = (W - w) / 2, y = 24, inset = look === "classic" ? 15 : look === "forever" ? 14 : 13;
+  const kids = [];
+  if (look === "forever") kids.push(foreverFrame(true)); else kids.push(h("div", { class: "skin9" }));
+
+  const close = look === "forever"
+    ? h("div", { class: "fvb", style: { right: 7, top: 4, width: 20, height: 19 }, html: GOLD_X })
+    : h("img", { class: "close", src: "assets/HeaderClose.png", alt: "" });
+  close.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+
+  if (look === "forever") {
+    kids.push(h("div", { class: "fvt", style: { left: 30, right: 30, top: 6, fontSize: 11.5 } }, t.title));
+    kids.push(close);
+  } else {
+    const grip = h("div", { class: "grip" }, Array.from({ length: 6 }, () => h("img", { src: "assets/Rivet.png", alt: "" })));
+    kids.push(h("div", { class: "hdr2", style: { left: inset - 2, right: inset - 3, top: inset - 4, height: 24 } },
+      grip, h("img", { class: "lg", src: "assets/Logo.png", alt: "" }), h("span", { class: "ttl" }, t.title), close));
+  }
+
+  const hasCompartment = look !== "classic";
+  const body = h("div", { class: "body" },
+    look === "forever" ? null : h("div", { class: "rule" }),
+    h("div", { class: "sec" }, t.secMain),
+    h("div", { class: "row" }, checkbox(t.keep, S.attached, () => { S.attached = !S.attached; })),
+    h("div", { class: "hint" }, t.keepHint),
+    hasCompartment ? h("div", { class: "row" }, checkbox(t.compartment, S.compartment, () => { S.compartment = !S.compartment; })) : null,
+    h("div", { class: "sec" }, t.secPanel),
+    h("div", { class: "row" }, h("span", { class: "lab" }, t.cols), slider(2, 8, 1, S.cols, v => { S.cols = v; }), h("span", { class: "val" }, S.cols)),
+    h("div", { class: "row" }, h("span", { class: "lab" }, t.dir),
+      h("div", { class: "dd" }, (() => {
+        const sel = h("select", {}, Object.entries(t.dirs).map(([k, v]) => h("option", { value: k, selected: k === S.dir }, v)));
+        sel.addEventListener("change", () => { S.dir = sel.value; renderAll(); });
+        return sel;
+      })(), h("span", { class: "ar" }))),
+    h("div", { class: "row" }, h("span", { class: "lab" }, t.size), slider(60, 160, 5, S.size, v => { S.size = v; }), h("span", { class: "val" }, S.size + " %")),
+    h("div", { class: "row" }, checkbox(t.uniform, S.uniform, () => { S.uniform = !S.uniform; })),
+    h("div", { class: "row" }, checkbox(t.autoclose, S.autoclose, () => { S.autoclose = !S.autoclose; })),
+    h("div", { class: "sec" }, t.secButtons(ADDONS.length)),
+    (() => {
+      const list = h("div", { class: "list" }, ADDONS.map(a => {
+        const on = !S.excluded.has(a.id);
+        const row = h("div", { class: "it" + (on ? "" : " off") },
+          checkbox("", on, () => { on ? S.excluded.add(a.id) : S.excluded.delete(a.id); }),
+          h("span", { class: "ico" + (a.img ? " logo" : ""), style: iconStyle(a) }),
+          h("span", { class: "nm" }, a.name), h("span", { class: "src" }, t.src[a.src]));
+        return row;
+      }));
+      list.addEventListener("scroll", () => { S.listScroll = list.scrollTop; });
+      requestAnimationFrame(() => { list.scrollTop = S.listScroll; });
+      return list;
+    })(),
+    h("div", { class: "sec" }, t.secBlizz),
+    h("div", { class: "cols2" }, BLIZZ.map(b => h("div", { class: "row" },
+      checkbox(t.blizz[b.id], S.blizz.has(b.id), () => { S.blizz.has(b.id) ? S.blizz.delete(b.id) : S.blizz.add(b.id); })))),
+    h("div", { class: "btns" },
+      (() => { const r = h("button", { class: "btn" }, t.reset); r.addEventListener("click", () => { S.angle = 145; S.free = null; renderAll(); }); return r; })(),
+      h("button", { class: "btn red" }, t.done)),
+    h("div", { class: "foot" }, "v0.1.0 with ", h("img", { src: "assets/Heart.png", alt: "♥" }), " by krebs3r"));
+  kids.push(body);
+  // The body flows; the frame (absolute, inset 0) grows with it.
+  const padTop = look === "forever" ? 31 : inset + 25;
+  return h("div", { class: "opt", style: { left: x, top: y, width: w, padding: `${padTop}px ${inset}px ${inset - 2}px` } }, kids);
+}
+
+/* ---------- Scenes ---------- */
+function buildScene(scene) {
+  const { W, H } = SCENES[scene];
+  const screen = h("div", { class: "screen " + S.look, "data-scene": scene, "data-look": S.look, "data-w": W, "data-h": H, style: { width: W, height: H, zoom: S.zoom } },
+    h("div", { class: "world" }));
+  const add = (...els) => screen.append(...els.flat());
+
+  if (scene === "options") { add(optionsEl(W)); return screen; }
+
+  add(minimapEl(scene));
+  const mm = minimapFor(scene);
+
+  if (scene === "minimap") {
+    const states = [["", "Normal"], ["hover", "Maus darüber"], ["pressed", "Gedrückt"]];
+    states.forEach(([cls, label], i) => {
+      const cx = 20 + i * 78;
+      const chip = h("div", { style: { position: "absolute", left: cx, top: 70, width: 66, height: 66, borderRadius: 4, overflow: "hidden", backgroundImage: "var(--terrain)", backgroundSize: "300% 300%", backgroundPosition: "60% 40%", boxShadow: "0 0 0 1px rgba(0,0,0,.6)" } },
+        h("div", { style: { position: "absolute", left: 1.5, top: 1.5, zoom: 2 } }, mainButton(scene, 0, 0, null, cls)));
+      add(chip, h("div", { class: "chrome-label", style: { left: cx - 6, top: 142, width: 78 } }, label));
+    });
+    add(h("div", { class: "chrome-label", style: { left: 20, top: 40, width: 222, textAlign: "left" } }, "Zustände, doppelte Größe"));
+    const p = rimPos(mm, S.angle, BTN);
+    add(rimButtons(scene), mainButton(scene, p.x, p.y, "rim"));
+    return screen;
+  }
+
+  if (scene === "detached") {
+    add(h("div", { class: "actionbar", style: { left: (W - 12 * 33 - 3) / 2, top: H - 42 } }, Array.from({ length: 12 }, () => h("i"))));
+    add(h("div", { class: "chatbox", style: { left: 10, top: H - 112, width: 168, height: 64 } }, "[Gilde] …", h("br"), "[Handel] …", h("br"), "[Allgemein] …"));
+  }
+
+  const attached = scene === "panel" ? S.attached : false;
+  let btn;
+  if (attached) btn = rimPos(mm, S.angle, BTN);
+  else btn = S.free || defaultFree(scene);
+  add(rimButtons(scene));
+  if (S.open[scene]) add(panelEl(scene, btn, W, H));
+  add(mainButton(scene, btn.x, btn.y, attached ? "rim" : "free"));
+  return screen;
+}
+
+function renderScene(scene) {
+  const host = document.querySelector(`.looks[data-scene="${scene}"]`);
+  const keepLook = S.look;
+  const looks = S.compare ? Object.keys(LOOKS) : [S.look];
+  host.replaceChildren(...looks.map(look => {
+    S.look = look;
+    const info = LOOKS[look];
+    return h("div", { class: "lookwrap" }, h("div", { class: "looklabel" }, h("b", {}, info.name), " · ", info.detail), buildScene(scene));
+  }));
+  S.look = keepLook;
+}
+function renderAll(except) {
+  for (const scene of Object.keys(SCENES)) if (scene !== except) renderScene(scene);
+  renderBar();
+}
+
+/* ---------- Dragging the main button ---------- */
+function startDrag(e, scene, mode) {
+  if (e.button !== 0) return;
+  e.preventDefault();
+  const look = e.currentTarget.closest(".screen").dataset.look;
+  const sx = e.clientX, sy = e.clientY;
+  let dragging = false;
+  const move = ev => {
+    if (!dragging && Math.hypot(ev.clientX - sx, ev.clientY - sy) < 4) return;
+    if (!dragging) { dragging = true; document.body.classList.add("dragging"); }
+    const screen = document.querySelector(`.screen[data-scene="${scene}"][data-look="${look}"]`);
+    if (!screen) return;
+    const r = screen.getBoundingClientRect(), k = r.width / Number(screen.dataset.w);
+    const ux = (ev.clientX - r.left) / k, uy = (ev.clientY - r.top) / k;
+    if (mode === "rim") {
+      const mm = minimapFor(scene);
+      S.angle = (Math.atan2(uy - mm.cy, ux - mm.cx) * 180 / Math.PI + 360) % 360;
+    } else {
+      const { W, H } = SCENES[scene];
+      S.free = { x: clamp(ux - BTN / 2, 2, W - BTN - 2), y: clamp(uy - BTN / 2, 2, H - BTN - 2) };
+    }
+    renderScene(scene);
+  };
+  const up = () => {
+    window.removeEventListener("pointermove", move);
+    window.removeEventListener("pointerup", up);
+    document.body.classList.remove("dragging");
+    if (dragging) { renderAll(); return; }
+    if (scene in S.open) { S.open[scene] = !S.open[scene]; clearTimeout(timers[scene]); renderScene(scene); }
+  };
+  window.addEventListener("pointermove", move);
+  window.addEventListener("pointerup", up);
+}
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") { S.open.panel = false; S.open.detached = false; renderScene("panel"); renderScene("detached"); }
+});
+
+/* ---------- Control bar ---------- */
+function seg(label, options, get, set) {
+  return h("div", { class: "ctl" }, h("span", {}, label), h("div", { class: "seg" }, options.map(([value, text]) => {
+    const b = h("button", { type: "button", "aria-pressed": String(get() === value) }, text);
+    b.addEventListener("click", () => { set(value); renderAll(); });
+    return b;
+  })));
+}
+function renderBar() {
+  const bar = document.getElementById("bar");
+  const lookValue = S.compare ? "all" : S.look;
+  const colSel = h("select", { class: "pg", "aria-label": "Spalten" }, [2, 3, 4, 5, 6, 7, 8].map(n => h("option", { value: n, selected: n === S.cols }, n)));
+  colSel.addEventListener("change", () => { S.cols = Number(colSel.value); renderAll(); });
+  const dirSel = h("select", { class: "pg", "aria-label": "Richtung" }, Object.entries(STR.de.dirs).map(([k, v]) => h("option", { value: k, selected: k === S.dir }, v)));
+  dirSel.addEventListener("change", () => { S.dir = dirSel.value; renderAll(); });
+  bar.replaceChildren(
+    seg("Look", [["retail", "Retail"], ["classic", "Classic"], ["forever", "Forever"], ["all", "Alle drei"]], () => lookValue,
+      v => { if (v === "all") S.compare = true; else { S.compare = false; S.look = v; } }),
+    seg("Sprache", [["de", "DE"], ["en", "EN"]], () => S.lang, v => { S.lang = v; }),
+    seg("Minimap", [["round", "Rund"], ["square", "Eckig"]], () => S.shape, v => { S.shape = v; }),
+    h("div", { class: "ctl" }, h("span", {}, "Spalten"), colSel),
+    h("div", { class: "ctl" }, h("span", {}, "Richtung"), dirSel),
+    seg("Slots", [[true, "Einheitlich"], [false, "Original"]], () => S.uniform, v => { S.uniform = v; }),
+    seg("Kopfzeile", [[true, "An"], [false, "Aus"]], () => S.header, v => { S.header = v; }),
+    seg("Schließen", [[true, "Maus weg"], [false, "Klick"]], () => S.autoclose, v => { S.autoclose = v; }),
+    seg("Zoom", [[1, "1×"], [1.5, "1,5×"], [2, "2×"], [3, "3×"]], () => S.zoom, v => { S.zoom = v; }),
+  );
+}
+
+renderAll();
+</script>
+</body>
+</html>
