@@ -20,6 +20,8 @@ A pushed version tag uploads Buttonstone to GitHub, CurseForge and Wago through 
    ## X-Wago-ID: <Wago project ID>
    ```
 
+   Done on 16 November 2026: CurseForge `1810909`, Wago `n6VY8WNd`.
+
 4. **Secrets.** In the repository's *Settings → Secrets and variables → Actions*, add `CF_API_KEY` (an API token from your CurseForge author settings) and `WAGO_API_TOKEN` (an API key from your Wago account). The same tokens as Umbra's work.
 
 The release workflow stops before uploading anything if an ID or a token is missing.

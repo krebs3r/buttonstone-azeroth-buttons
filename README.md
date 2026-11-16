@@ -8,7 +8,7 @@ Buttonstone gathers the minimap buttons of your other addons into one button on 
 
 ![Buttonstone on Retail](docs/curseforge/screenshots/panel-retail.png) ![Buttonstone on WoW: Forever](docs/curseforge/screenshots/panel-forever.png) ![Buttonstone on TBC Anniversary](docs/curseforge/screenshots/panel-classic.png)
 
-**Status:** 0.1 is built and checked in the game; the first release follows once the CurseForge and Wago projects exist. The look was settled in the [mockup](docs/design/mockup.html), the plan is in [docs/PLAN.md](docs/PLAN.md).
+**Status:** 0.1 is built and checked in the game; the first release, 0.1.0, follows soon on CurseForge and Wago. The look was settled in the [mockup](docs/design/mockup.html), the plan is in [docs/PLAN.md](docs/PLAN.md).
 
 ## What it does
 

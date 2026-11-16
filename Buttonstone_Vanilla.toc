@@ -8,6 +8,8 @@
 ## IconTexture: Interface\AddOns\Buttonstone\Media\Logo
 ## X-Website: https://github.com/krebs3r/buttonstone-azeroth-buttons
 ## X-License: MIT
+## X-Curse-Project-ID: 1810909
+## X-Wago-ID: n6VY8WNd
 ## Category-enUS: Minimap
 ## Category-deDE: Minimap
 
