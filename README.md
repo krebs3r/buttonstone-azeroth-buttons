@@ -8,7 +8,7 @@ Buttonstone gathers the minimap buttons of your other addons into one button on 
 
 ![Buttonstone on Retail](docs/curseforge/screenshots/panel-retail.png) ![Buttonstone on WoW: Forever](docs/curseforge/screenshots/panel-forever.png) ![Buttonstone on TBC Anniversary](docs/curseforge/screenshots/panel-classic.png)
 
-**Status:** 0.1 is built and checked in the game; the first release, 0.1.0, follows soon on CurseForge and Wago. The look was settled in the [mockup](docs/design/mockup.html), the plan is in [docs/PLAN.md](docs/PLAN.md).
+**Status:** 0.1.0 is out, released on 16 November 2026. The look was settled in the [mockup](docs/design/mockup.html), the plan is in [docs/PLAN.md](docs/PLAN.md).
 
 ## What it does
 
@@ -26,7 +26,7 @@ Retail (Midnight), Mists of Pandaria Classic, TBC Classic Anniversary, Classic E
 
 ## Installation
 
-From CurseForge or Wago once released, or from a [GitHub release](https://github.com/krebs3r/buttonstone-azeroth-buttons/releases): unpack it into the client's `Interface/AddOns` folder so that `Interface/AddOns/Buttonstone/Buttonstone_Mainline.toc` exists.
+From [Wago](https://addons.wago.io/addons/buttonstone-azeroth-buttons), from CurseForge (search for Buttonstone) or from a [GitHub release](https://github.com/krebs3r/buttonstone-azeroth-buttons/releases). By hand, unpack it into the client's `Interface/AddOns` folder so that `Interface/AddOns/Buttonstone/Buttonstone_Mainline.toc` exists.
 
 ## Development
 
