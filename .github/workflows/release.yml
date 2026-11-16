@@ -1,0 +1,73 @@
+name: Release
+
+# A pushed version tag (0.1.0, 0.1.1, ...) builds one package with every TOC
+# and uploads it to GitHub, CurseForge and Wago. tools/release.ps1 makes the
+# tag after the changelog section is dated and the tests pass.
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # The same checks as every pull request, once more on the tagged commit.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python tests/run.py
+      - run: python -m unittest discover -s tests -p "test_*.py"
+
+      # GitHub, CurseForge and Wago get the notes for this tag alone, cut from
+      # the newest changelog section. A section for another version is what a
+      # forgotten changelog entry looks like from here, so it stops the run.
+      - name: Release notes from the newest changelog section
+        run: |
+          awk '/^## /{n++} n==1' CHANGELOG.md > RELEASE_NOTES.md
+          if ! head -n1 RELEASE_NOTES.md | grep -q "^## ${TAG} "; then
+            echo "::error::CHANGELOG.md opens with '$(head -n1 RELEASE_NOTES.md)', not a section for ${TAG}"
+            exit 1
+          fi
+
+      # The packager skips a site it has no project or token for and stays
+      # green; Umbra's first releases never reached Wago that way. So anything
+      # missing stops the run here, before anything is uploaded.
+      - name: A project and a token for every site
+        env:
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
+        run: |
+          missing=
+          grep -q '^## X-Curse-Project-ID: [0-9]' Buttonstone_Mainline.toc || missing="$missing X-Curse-Project-ID (TOC)"
+          grep -q '^## X-Wago-ID: [A-Za-z0-9]' Buttonstone_Mainline.toc || missing="$missing X-Wago-ID (TOC)"
+          [ -n "$CF_API_KEY" ] || missing="$missing CF_API_KEY (secret)"
+          [ -n "$WAGO_API_TOKEN" ] || missing="$missing WAGO_API_TOKEN (secret)"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing:$missing"
+            exit 1
+          fi
+
+      # One package carrying every TOC; each site reads the client versions
+      # from the TOCs (Umbra's setup, measured on its first tag).
+      - uses: BigWigsMods/packager@master
+        env:
+          GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}

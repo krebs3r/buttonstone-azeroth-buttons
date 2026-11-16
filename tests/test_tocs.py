@@ -48,6 +48,11 @@ class TocTests(unittest.TestCase):
         self.assertIsNotNone(icon)
         self.assertTrue((ROOT / (icon.group(1).replace("\\", "/") + ".tga")).is_file(), "icon texture exists")
 
+    def test_names_the_curseforge_and_wago_projects(self):
+        text = read("Mainline")
+        self.assertRegex(text, r"(?m)^## X-Curse-Project-ID: 1810909$", "the packager uploads to this CurseForge project")
+        self.assertRegex(text, r"(?m)^## X-Wago-ID: n6VY8WNd$", "the packager uploads to this Wago project")
+
     def test_files_listed_and_present(self):
         listed = [l.strip() for l in read("Mainline").splitlines() if l.strip() and not l.startswith("#")]
         for name in listed:

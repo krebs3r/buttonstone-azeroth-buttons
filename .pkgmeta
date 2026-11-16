@@ -8,3 +8,10 @@ ignore:
   - tests
   - requirements-dev.txt
   - .luacheckrc
+  - RELEASE_NOTES.md
+
+# Written by the release workflow from the newest section of CHANGELOG.md, so
+# a release carries its own notes and not every one before it.
+manual-changelog:
+  filename: RELEASE_NOTES.md
+  markup-type: markdown
