@@ -44,6 +44,8 @@ ns.Bundle:Open()
 check(ButtonstonePanel:IsShown(), 'the panel still opens')
 check(ns.Bundle.empty:IsShown(), 'and says why it is empty')
 equal(ns.Bundle.empty:GetText(), ns.L.EMPTY_RIVAL:format('MinimapButtonButton'), 'naming the other collector')
+check(ButtonstonePanel:GetWidth() >= ns.Bundle.empty:GetStringWidth() + 2 * ns.Theme.Metrics().padX,
+	'the panel is wide enough for the message')
 check(ButtonstoneLauncher:GetParent() == Minimap, 'the main button is there')
 
 return passed

@@ -297,6 +297,14 @@ local function pushButton(parent, label, red, onClick)
 	return b
 end
 
+-- A release reads 'v0.1.0'; a build from the checkout keeps its name ('dev-88d498d').
+function Options.VersionLabel(version)
+	if version:find('^%d') then
+		return 'v' .. version
+	end
+	return version
+end
+
 --[[ The list of buttons ]]
 local function setIcon(texture, button)
 	texture:SetTexture(nil)
@@ -639,7 +647,7 @@ function Options:Build()
 	heart:SetTexture(T.Texture('Heart'))
 	heart:SetSize(10, 10)
 	heart:SetPoint('RIGHT', by, 'LEFT', -3, 0)
-	c.footer = text(frame, 'GameFontDisableSmall', 'muted', L.FOOTER:format(C.Version()))
+	c.footer = text(frame, 'GameFontDisableSmall', 'muted', L.FOOTER:format(Options.VersionLabel(C.Version())))
 	c.footer:SetPoint('RIGHT', heart, 'LEFT', -3, 0)
 
 	frame:SetScript('OnShow', function()

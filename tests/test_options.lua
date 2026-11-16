@@ -79,6 +79,9 @@ local _, _, _, doneX = c.done:GetPoint(1)
 equal(select(2, c.done:GetPoint(1)), c.reset, 'done sits right of reset')
 equal(doneX, 8, 'with a gap')
 check(c.footer:GetText():find('dev', 1, true), 'version in the footer')
+check(not c.footer:GetText():find('vdev', 1, true), 'no v before a build from the checkout')
+equal(ns.Options.VersionLabel('0.1.0'), 'v0.1.0', 'a release with its v')
+equal(ns.Options.VersionLabel('dev-88d498d'), 'dev-88d498d', 'a checkout build without one')
 
 --[[ The main button ]]
 equal(c.attached:GetChecked(), true, 'keep box shows the setting')

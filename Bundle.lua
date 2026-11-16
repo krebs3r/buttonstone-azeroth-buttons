@@ -249,9 +249,15 @@ function Bundle:Layout()
 	local gridHeight = rows * SLOT + (rows - 1) * GAP
 	local top = p.header and m.padTopHeader or m.padTop
 	self.count:SetText(L.COUNT:format(count))
+	local rival = ns.Collector.rival
+	self.empty:SetText(rival and L.EMPTY_RIVAL:format(rival) or L.EMPTY)
 	local width = gridWidth + 2 * m.padX
 	if p.header or count == 0 then
 		width = math.max(width, m.minWidth)
+	end
+	if count == 0 then
+		-- The message stays on one line inside the frame, also with a long collector's name.
+		width = math.max(width, self.empty:GetStringWidth() + 2 * m.padX)
 	end
 	if p.header then
 		width = math.max(width, self:HeaderWidth())
@@ -272,8 +278,6 @@ function Bundle:Layout()
 	if self.rule then
 		self.rule:SetShown(p.header)
 	end
-	local rival = ns.Collector.rival
-	self.empty:SetText(rival and L.EMPTY_RIVAL:format(rival) or L.EMPTY)
 	self.empty:SetShown(count == 0)
 	self.empty:ClearAllPoints()
 	self.empty:SetPoint('CENTER', frame, 'TOPLEFT', width / 2, -(top + gridHeight / 2))

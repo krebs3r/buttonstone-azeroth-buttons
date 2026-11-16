@@ -37,7 +37,7 @@ local base = {
 	NOT_LOADED = 'not loaded',
 	RESET_POSITION = 'Reset position',
 	DONE = 'Done',
-	FOOTER = 'v%s with',
+	FOOTER = '%s with',
 
 	HELP_HEADER = 'Commands:',
 	HELP_OPTIONS = '/bst – open the options',
