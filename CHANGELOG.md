@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.1 — 17 November 2026
 
 - New name: **Buttonstone – Azeroth Minimap Buttons**. The addon list, the options window and the main button's tooltip show it; the addon folder, your settings and `/bst` stay as they are.
 
