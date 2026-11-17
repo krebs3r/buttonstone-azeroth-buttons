@@ -23,7 +23,7 @@ Mock.metadata.Version = '@project-version@'
 
 -- Strings
 equal(ns.L.HELP_HEADER, expect.locale == 'deDE' and 'Befehle:' or 'Commands:', 'locale')
-equal(ns.L.TITLE, 'Buttonstone – Azeroth Buttons', 'a string the locale does not change')
+equal(ns.L.TITLE, 'Buttonstone – Azeroth Minimap Buttons', 'a string the locale does not change')
 equal(ns.L.NO_SUCH_KEY, 'NO_SUCH_KEY', 'a missing string shows its key')
 
 -- A fresh install

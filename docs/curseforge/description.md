@@ -1,4 +1,4 @@
-# Buttonstone – Azeroth Buttons
+# Buttonstone – Azeroth Minimap Buttons
 
 **All your minimap buttons. One stone.**
 

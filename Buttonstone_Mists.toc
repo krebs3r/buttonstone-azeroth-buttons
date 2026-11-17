@@ -1,5 +1,5 @@
 ## Interface: 50504
-## Title: Buttonstone - Azeroth Buttons
+## Title: Buttonstone - Azeroth Minimap Buttons
 ## Notes: Gathers the minimap buttons of your other addons into one button and panel.
 ## Notes-deDE: Sammelt die Minimap-Buttons deiner anderen Addons in einem Button und Panel.
 ## Author: krebs3r

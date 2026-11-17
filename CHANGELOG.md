@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- New name: **Buttonstone – Azeroth Minimap Buttons**. The addon list, the options window and the main button's tooltip show it; the addon folder, your settings and `/bst` stay as they are.
+
 ## 0.1.0 — 16 November 2026
 
 - Gathers every LibDBIcon button and the buttons addons make themselves (such as Hourstone's, Soundstone's and Umbra's) into one panel; Blizzard's frames, map pins and protected frames are left alone.

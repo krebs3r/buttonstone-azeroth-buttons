@@ -5,7 +5,7 @@ English is the base; a locale lists only what it changes. A key nobody wrote
 shows itself, so a forgotten string is visible in the game rather than empty.
 --]]
 local base = {
-	TITLE = 'Buttonstone – Azeroth Buttons',
+	TITLE = 'Buttonstone – Azeroth Minimap Buttons',
 	PANEL_TITLE = 'Buttonstone',
 	COUNT = '%d buttons',
 	EMPTY = 'No buttons found yet',

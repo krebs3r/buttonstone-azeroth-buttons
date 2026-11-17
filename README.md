@@ -1,6 +1,6 @@
 <p align="center"><img src="docs/curseforge/logo-400.png" width="170" alt="Buttonstone: blue rune stone with a block of four golden buttons"></p>
 
-# Buttonstone – Azeroth Buttons
+# Buttonstone – Azeroth Minimap Buttons
 
 **All your minimap buttons. One stone.**
 
@@ -26,7 +26,7 @@ Retail (Midnight), Mists of Pandaria Classic, TBC Classic Anniversary, Classic E
 
 ## Installation
 
-From [Wago](https://addons.wago.io/addons/buttonstone-azeroth-buttons), from CurseForge (search for Buttonstone) or from a [GitHub release](https://github.com/krebs3r/buttonstone-azeroth-buttons/releases). By hand, unpack it into the client's `Interface/AddOns` folder so that `Interface/AddOns/Buttonstone/Buttonstone_Mainline.toc` exists.
+From [CurseForge](https://www.curseforge.com/wow/addons/buttonstone-azeroth-minimap-buttons), from [Wago](https://addons.wago.io/addons/buttonstone-azeroth-buttons) or from a [GitHub release](https://github.com/krebs3r/buttonstone-azeroth-buttons/releases). By hand, unpack it into the client's `Interface/AddOns` folder so that `Interface/AddOns/Buttonstone/Buttonstone_Mainline.toc` exists.
 
 ## Development
 

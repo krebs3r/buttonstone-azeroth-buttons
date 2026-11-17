@@ -1,6 +1,6 @@
-# Buttonstone – Azeroth Buttons: plan
+# Buttonstone – Azeroth Minimap Buttons: plan
 
-Status, 16 November 2026: **0.1.0 released** to GitHub, CurseForge (1810909) and Wago (n6VY8WNd), after the author's walkthrough on all five clients. Next: the *Roadmap after 0.1*, one small release per real change.
+Status, 17 November 2026: **0.1.0 released** on 16 November to GitHub, CurseForge (1810909) and Wago (n6VY8WNd), after the author's walkthrough on all five clients. Renamed on 17 November from "Buttonstone – Azeroth Buttons" to "Buttonstone – Azeroth Minimap Buttons"; 0.1.1 brings the name into the game, then the options window joins the project page's screenshots. Next: the *Roadmap after 0.1*, one small release per real change.
 
 Buttonstone gathers the minimap buttons of other addons into one button on the minimap rim and shows them in a small panel in the client's own look. It joins Hourstone – Azeroth Hours and Soundstone – Azeroth Audio and follows their conventions.
 
@@ -8,7 +8,7 @@ Buttonstone gathers the minimap buttons of other addons into one button on the m
 
 | Topic | Decision |
 | --- | --- |
-| Name | Buttonstone – Azeroth Buttons; folder and slug `buttonstone-azeroth-buttons`; addon folder `Buttonstone`; SavedVariables `ButtonstoneDB` |
+| Name | Buttonstone – Azeroth Minimap Buttons, since 17 November 2026 (before: Buttonstone – Azeroth Buttons; the author renamed the CurseForge project so the word players search for is in the name). Folder, GitHub repository and Wago slug stay `buttonstone-azeroth-buttons`; CurseForge slug `buttonstone-azeroth-minimap-buttons`; addon folder `Buttonstone`; SavedVariables `ButtonstoneDB` |
 | Repository | `krebs3r/buttonstone-azeroth-buttons`, public, MIT. Created on GitHub only after the mockup is approved |
 | Main button | On the minimap rim, dragged along it (round and square minimaps); can be detached and placed freely |
 | What it gathers | All addon buttons: LibDBIcon (also buttons created later) and recognised buttons of their own (Hourstone, Soundstone, Umbra and the like). Blizzard's buttons only when switched on one by one, **in a release after 0.1** (decided 15 November 2026: on Retail and Forever, Edit Mode places them itself, and taking them risks blocked actions; the risk is checked per client first) |

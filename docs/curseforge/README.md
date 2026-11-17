@@ -5,14 +5,14 @@ A pushed version tag uploads Buttonstone to GitHub, CurseForge and Wago through 
 ## Once: the projects and the tokens
 
 1. **CurseForge project.** In the [CurseForge authors dashboard](https://authors.curseforge.com/), create a World of Warcraft addon project:
-   - name: `Buttonstone – Azeroth Buttons`
+   - name: `Buttonstone – Azeroth Minimap Buttons` (until 17 November 2026 `Buttonstone – Azeroth Buttons`; the page is [curseforge.com/wow/addons/buttonstone-azeroth-minimap-buttons](https://www.curseforge.com/wow/addons/buttonstone-azeroth-minimap-buttons))
    - summary: `All your minimap buttons in one stone: gathers other addons' minimap buttons into one button and a panel in your client's look.`
    - main category: Map & Minimap
    - license: MIT
    - logo: [logo-400.png](logo-400.png)
    - description: [description.md](description.md)
    - source: `https://github.com/krebs3r/buttonstone-azeroth-buttons`, issues: the repository's issues
-2. **Wago project.** On [addons.wago.io](https://addons.wago.io/), create the project with the same name, summary, logo and description.
+2. **Wago project.** On [addons.wago.io](https://addons.wago.io/), create the project with the same name, summary, logo and description. Its page is [addons.wago.io/addons/buttonstone-azeroth-buttons](https://addons.wago.io/addons/buttonstone-azeroth-buttons).
 3. **IDs into the TOCs.** Add both IDs under `## X-License: MIT` in all five `Buttonstone_*.toc` files (the TOC test keeps them identical):
 
    ```
